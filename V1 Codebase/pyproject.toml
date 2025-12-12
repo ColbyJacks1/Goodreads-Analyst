@@ -1,0 +1,64 @@
+[tool.poetry]
+name = "goodreads-analyzer"
+version = "0.1.0"
+description = "A local Streamlit app for Goodreads analysis with deep insights"
+authors = ["Colby Jackson <colbyjacks1@gmail.com>"]
+readme = "README.md"
+packages = [{include = "app"}, {include = "ui"}]
+
+[tool.poetry.dependencies]
+python = "^3.13"
+streamlit = "^1.41.0"
+sqlmodel = "^0.0.24"
+plotly = "^5.18.0"
+pandas = "^2.2.3"
+numpy = "^2.1.0"
+requests = "^2.31.0"
+python-dotenv = "^1.0.1"
+google-generativeai = "^0.8.5"
+pydantic = "^2.0.0"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.11.0"
+ruff = "^0.1.6"
+mypy = "^1.7.1"
+pre-commit = "^3.5.0"
+pytest = "^7.4.3"
+pytest-asyncio = "^0.21.1"
+httpx = "^0.25.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py313']
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+select = ["E", "F", "I", "N", "W", "B", "C4", "UP", "ARG", "SIM", "TCH", "TID", "Q", "RSE", "RET", "SLF", "SLOT", "PIE", "TRY", "NPY", "AIR", "PERF", "LOG", "FURB", "PTH", "ERA", "PD", "PGH", "PL", "TRY", "NPY", "AIR", "PERF", "LOG", "FURB", "PTH", "ERA", "PD", "PGH", "PL", "RUF", "S", "BLE", "FBT", "A", "COM", "C4", "DTZ", "T10", "EM", "EXE", "ISC", "ICN", "G", "INP", "PIE", "T20", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SLOT", "TID", "TCH", "ARG", "SIM", "UP", "W", "YTT", "S", "BLE", "FBT", "A", "COM", "C4", "DTZ", "T10", "EM", "EXE", "ISC", "ICN", "G", "INP", "PIE", "T20", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SLOT", "TID", "TCH", "ARG", "SIM", "UP", "W", "YTT"]
+
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+asyncio_mode = "auto" 
