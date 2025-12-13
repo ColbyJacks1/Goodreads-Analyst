@@ -42,7 +42,7 @@ export default function AnalyzePage() {
     
     // Check for cached analysis
     const cachedAnalysis = getAnalysis();
-    if (cachedAnalysis && cachedAnalysis.roast?.raw) {
+    if (cachedAnalysis && cachedAnalysis.roast && 'raw' in cachedAnalysis.roast) {
       setAnalysis(cachedAnalysis);
       setLoading(false);
       return;
@@ -56,7 +56,7 @@ export default function AnalyzePage() {
       // Wait for it to complete
       waitForAnalysis().then(() => {
         const result = getAnalysis();
-        if (result && result.roast?.raw) {
+        if (result && result.roast && 'raw' in result.roast) {
           setAnalysis(result);
         }
         setAnalyzing(false);
@@ -64,7 +64,7 @@ export default function AnalyzePage() {
     } else if (status.status === 'complete') {
       // Background analysis finished, load results
       const result = getAnalysis();
-      if (result && result.roast?.raw) {
+      if (result && result.roast && 'raw' in result.roast) {
         setAnalysis(result);
       }
     } else if (status.status === 'error') {
@@ -125,8 +125,10 @@ export default function AnalyzePage() {
     );
   }
   
-  const hasAllSections = analysis?.roast?.raw && analysis?.recommendations?.raw && 
-                         analysis?.profile?.raw && analysis?.insights?.raw;
+  const hasAllSections = analysis?.roast && 'raw' in analysis.roast && 
+                         analysis?.recommendations && 'raw' in analysis.recommendations && 
+                         analysis?.profile && 'raw' in analysis.profile && 
+                         analysis?.insights && 'raw' in analysis.insights;
   
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -194,8 +196,8 @@ export default function AnalyzePage() {
         
         {/* Roast Tab */}
         <TabsContent value="roast">
-          {!analyzing && analysis?.roast?.raw ? (
-            <RoastCard content={analysis.roast.raw} />
+          {!analyzing && analysis?.roast && 'raw' in analysis.roast ? (
+            <RoastCard content={(analysis.roast as { raw: string }).raw} />
           ) : !analyzing && (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
@@ -210,8 +212,8 @@ export default function AnalyzePage() {
         
         {/* Recommendations Tab */}
         <TabsContent value="recommendations">
-          {!analyzing && analysis?.recommendations?.raw ? (
-            <RecommendationList content={analysis.recommendations.raw} />
+          {!analyzing && analysis?.recommendations && 'raw' in analysis.recommendations ? (
+            <RecommendationList content={(analysis.recommendations as { raw: string }).raw} />
           ) : !analyzing && (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
@@ -226,8 +228,8 @@ export default function AnalyzePage() {
         
         {/* Profile Tab */}
         <TabsContent value="profile">
-          {!analyzing && analysis?.profile?.raw ? (
-            <ProfileCard content={analysis.profile.raw} />
+          {!analyzing && analysis?.profile && 'raw' in analysis.profile ? (
+            <ProfileCard content={(analysis.profile as { raw: string }).raw} />
           ) : !analyzing && (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
@@ -242,8 +244,8 @@ export default function AnalyzePage() {
         
         {/* Insights Tab */}
         <TabsContent value="insights">
-          {!analyzing && analysis?.insights?.raw ? (
-            <InsightCard content={analysis.insights.raw} />
+          {!analyzing && analysis?.insights && 'raw' in analysis.insights ? (
+            <InsightCard content={(analysis.insights as { raw: string }).raw} />
           ) : !analyzing && (
             <div className="text-center py-12">
               <p className="text-muted-foreground">

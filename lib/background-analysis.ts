@@ -30,8 +30,10 @@ export function hasValidCachedAnalysis(): boolean {
   if (!cached) return false;
   
   // Check if all sections are present
-  return !!(cached.roast?.raw && cached.recommendations?.raw && 
-            cached.profile?.raw && cached.insights?.raw);
+  return !!(cached.roast && 'raw' in cached.roast && 
+            cached.recommendations && 'raw' in cached.recommendations && 
+            cached.profile && 'raw' in cached.profile && 
+            cached.insights && 'raw' in cached.insights);
 }
 
 /**
