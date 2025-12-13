@@ -2,13 +2,17 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Sparkles, BarChart3, ArrowRight } from 'lucide-react';
+import { BookOpen, Sparkles, BarChart3, ArrowRight, PlayCircle, Brain, MessageSquare, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileDropzone } from '@/components/upload/file-dropzone';
 import { ImportProgressDisplay } from '@/components/upload/import-progress';
-import { ExportGuide } from '@/components/upload/export-guide';
+import { ExportGuideButton, ExportGuideTooltip } from '@/components/home/export-guide';
+import { QuickRecommendCompact } from '@/components/home/quick-recommend';
+import { EXAMPLE_PREVIEWS } from '@/lib/demo-data';
 import { parseGoodreadsCsv } from '@/lib/csv-parser';
-import { saveBooks, getBookCount, clearBooks, clearAnalysis } from '@/lib/storage';
+import { saveBooks, getBookCount, clearBooks, clearAnalysis, loadDemoData, isDemoMode, clearDemoData } from '@/lib/storage';
 import { normalizeBookshelves } from '@/lib/genre-normalizer';
 import { startBackgroundAnalysis, resetAnalysisState } from '@/lib/background-analysis';
 import { Book, ImportProgress } from '@/lib/types';
@@ -16,6 +20,7 @@ import { Book, ImportProgress } from '@/lib/types';
 export default function HomePage() {
   const router = useRouter();
   const [existingBookCount, setExistingBookCount] = useState(0);
+  const [isDemo, setIsDemo] = useState(false);
   const [progress, setProgress] = useState<ImportProgress>({
     stage: 'idle',
     current: 0,
@@ -25,6 +30,7 @@ export default function HomePage() {
   
   useEffect(() => {
     setExistingBookCount(getBookCount());
+    setIsDemo(isDemoMode());
   }, []);
   
   const enrichBooks = useCallback(async (
@@ -114,7 +120,6 @@ export default function HomePage() {
       setExistingBookCount(enrichedBooks.length);
       
       // Start AI analysis in the background immediately
-      // This runs while user is viewing stats, so analysis is ready when they click Analyze
       startBackgroundAnalysis(enrichedBooks);
       
       setProgress({
@@ -143,8 +148,10 @@ export default function HomePage() {
   const handleClearData = useCallback(() => {
     clearBooks();
     clearAnalysis();
+    clearDemoData();
     resetAnalysisState();
     setExistingBookCount(0);
+    setIsDemo(false);
     setProgress({
       stage: 'idle',
       current: 0,
@@ -152,6 +159,13 @@ export default function HomePage() {
       message: '',
     });
   }, []);
+
+  const handleTryDemo = useCallback(() => {
+    loadDemoData();
+    setExistingBookCount(28); // Demo has ~28 read books
+    setIsDemo(true);
+    router.push('/stats');
+  }, [router]);
   
   const isProcessing = progress.stage === 'parsing' || progress.stage === 'enriching';
   
@@ -197,11 +211,20 @@ export default function HomePage() {
               {existingBookCount > 0 ? (
                 <div className="space-y-6">
                   <div className="text-center p-6 bg-muted rounded-xl">
+                    {isDemo && (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 mb-3 bg-primary/10 rounded-full text-sm font-medium text-primary">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        Demo Mode
+                      </div>
+                    )}
                     <p className="text-lg font-medium mb-2">
                       You have {existingBookCount.toLocaleString()} books loaded
                     </p>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Continue exploring your library or upload a new file
+                      {isDemo 
+                        ? 'Explore the app with sample data, or upload your own library'
+                        : 'Continue exploring your library or upload a new file'
+                      }
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                       <Button onClick={() => router.push('/stats')}>
@@ -216,8 +239,39 @@ export default function HomePage() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <FileDropzone onFileSelect={handleFileSelect} disabled={isProcessing} />
-                  <ExportGuide />
+                  {/* File upload with help tooltip */}
+                  <div className="relative">
+                    <div className="absolute top-2 right-2 z-10">
+                      <ExportGuideTooltip />
+                    </div>
+                    <FileDropzone onFileSelect={handleFileSelect} disabled={isProcessing} />
+                  </div>
+                  
+                  {/* Export help link */}
+                  <div className="text-center">
+                    <ExportGuideButton />
+                  </div>
+                  
+                  {/* Demo option */}
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1 h-px bg-border" />
+                    <span className="text-sm text-muted-foreground">or</span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                  
+                  <div className="text-center">
+                    <Button 
+                      variant="ghost" 
+                      onClick={handleTryDemo}
+                      className="gap-2 text-muted-foreground hover:text-foreground"
+                    >
+                      <PlayCircle className="w-4 h-4" />
+                      Try with sample data
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      See how it works without uploading anything
+                    </p>
+                  </div>
                 </div>
               )}
             </>
@@ -226,10 +280,110 @@ export default function HomePage() {
           )}
         </div>
         
+        {/* Below-fold content when no books uploaded */}
+        {existingBookCount === 0 && progress.stage === 'idle' && (
+          <>
+            {/* Quick Recommendation */}
+            <Card className="mt-12 border-dashed">
+              <CardContent className="p-6">
+                <QuickRecommendCompact />
+              </CardContent>
+            </Card>
+            
+            {/* Example Previews */}
+            <div className="mt-12">
+              <h2 className="text-xl font-bold text-center mb-6">
+                What You&apos;ll Discover
+              </h2>
+              
+              <Tabs defaultValue="roast" className="w-full">
+                <TabsList className="grid w-full grid-cols-3 mb-4">
+                  <TabsTrigger value="roast" className="text-xs sm:text-sm gap-1">
+                    <MessageSquare className="w-3.5 h-3.5 hidden sm:inline" />
+                    Roast
+                  </TabsTrigger>
+                  <TabsTrigger value="profile" className="text-xs sm:text-sm gap-1">
+                    <User className="w-3.5 h-3.5 hidden sm:inline" />
+                    Profile
+                  </TabsTrigger>
+                  <TabsTrigger value="year" className="text-xs sm:text-sm gap-1">
+                    <Brain className="w-3.5 h-3.5 hidden sm:inline" />
+                    Year Review
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="roast">
+                  <Card className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                        <MessageSquare className="w-5 h-5" />
+                        {EXAMPLE_PREVIEWS.roast.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-foreground/80 italic mb-3">
+                        &ldquo;{EXAMPLE_PREVIEWS.roast.preview}&rdquo;
+                      </p>
+                      <p className="text-sm text-foreground/60">
+                        Sample: &ldquo;{EXAMPLE_PREVIEWS.roast.fullQuote}&rdquo;
+                      </p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="profile">
+                  <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2 text-purple-700 dark:text-purple-400">
+                        <User className="w-5 h-5" />
+                        {EXAMPLE_PREVIEWS.profile.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="font-semibold text-foreground mb-2">
+                        {EXAMPLE_PREVIEWS.profile.type}
+                      </p>
+                      <p className="text-foreground/80">
+                        {EXAMPLE_PREVIEWS.profile.preview}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+                
+                <TabsContent value="year">
+                  <Card className="bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-950/30 dark:to-emerald-950/30">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg flex items-center gap-2 text-teal-700 dark:text-teal-400">
+                        <Brain className="w-5 h-5" />
+                        {EXAMPLE_PREVIEWS.yearSummary.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="font-semibold text-foreground mb-2">
+                        {EXAMPLE_PREVIEWS.yearSummary.headline}
+                      </p>
+                      <p className="text-foreground/80">
+                        {EXAMPLE_PREVIEWS.yearSummary.preview}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+              
+              <div className="text-center mt-6">
+                <Button onClick={handleTryDemo} variant="outline" className="gap-2">
+                  <PlayCircle className="w-4 h-4" />
+                  See Full Demo
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+        
         {/* Privacy Note */}
-        <p className="text-center text-xs text-muted-foreground mt-8">
-          Your data is processed locally and stored in your browser. 
-          We don&apos;t store your reading history on our servers.
+        <p className="text-center text-xs text-muted-foreground mt-8 max-w-lg mx-auto">
+          Your CSV stays in your browser. AI features send your book list (titles, ratings, dates) 
+          to generate insights — we don&apos;t store your library. Not affiliated with Goodreads or Amazon.
         </p>
       </div>
     </div>

@@ -251,8 +251,11 @@ function PersonalityCard({ personality }: { personality: PersonalityData }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-3 text-xl font-bold text-foreground">
           <Fingerprint className="w-6 h-6 text-primary" />
-          Personality Analysis
+          Personality Inference
         </CardTitle>
+        <p className="text-sm text-muted-foreground mt-1">
+          Can AI guess your personality type from books alone?
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Myers-Briggs */}
@@ -323,6 +326,14 @@ export function ProfileCard({ content }: ProfileCardProps) {
   if (profileData) {
     return (
       <div className="space-y-6">
+        {/* AI Inference Intro */}
+        <div className="p-4 bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl border border-primary/20">
+          <p className="text-base text-foreground/80 leading-relaxed">
+            <span className="font-semibold text-primary">AI Inference Experiment:</span> Based on your reading patterns, 
+            here&apos;s what the AI guessed about you. How accurate is it?
+          </p>
+        </div>
+        
         {/* Personality - Show first as it's the new highlight */}
         {profileData.personality && (profileData.personality.myersBriggs || profileData.personality.bigFive) && (
           <PersonalityCard personality={profileData.personality} />
@@ -334,8 +345,11 @@ export function ProfileCard({ content }: ProfileCardProps) {
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-xl font-bold">
                 <User className="w-6 h-6 text-blue-500" />
-                Core Demographics
+                AI&apos;s Guess About You
               </CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Inferred from your reading patterns — may be wildly off!
+              </p>
             </CardHeader>
             <CardContent>
               <div className="grid gap-3">

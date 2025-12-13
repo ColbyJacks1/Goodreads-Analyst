@@ -86,6 +86,59 @@ export function calculateStats(books: Book[]): BookStats {
   const uniqueAuthors = new Set(readBooks.map(b => b.author).filter(Boolean)).size;
   const uniqueGenres = new Set(readBooks.flatMap(b => b.genres)).size;
   
+  // Publication era stats
+  const booksWithPubYear = readBooks.filter(b => 
+    b.originalPublicationYear && b.originalPublicationYear > 0 && b.originalPublicationYear < 3000
+  );
+  const pubYears = booksWithPubYear.map(b => b.originalPublicationYear!);
+  const averagePubYear = pubYears.length > 0 
+    ? Math.round(pubYears.reduce((a, b) => a + b, 0) / pubYears.length)
+    : 0;
+  
+  const sortedByPubYear = [...booksWithPubYear].sort((a, b) => 
+    (a.originalPublicationYear || 0) - (b.originalPublicationYear || 0)
+  );
+  const oldestBook = sortedByPubYear[0] 
+    ? { title: sortedByPubYear[0].title, author: sortedByPubYear[0].author, year: sortedByPubYear[0].originalPublicationYear! }
+    : null;
+  const newestBook = sortedByPubYear[sortedByPubYear.length - 1]
+    ? { title: sortedByPubYear[sortedByPubYear.length - 1].title, author: sortedByPubYear[sortedByPubYear.length - 1].author, year: sortedByPubYear[sortedByPubYear.length - 1].originalPublicationYear! }
+    : null;
+  
+  // Group by decade
+  const decadeCounts: Record<string, number> = {};
+  for (const book of booksWithPubYear) {
+    const decade = Math.floor(book.originalPublicationYear! / 10) * 10;
+    const decadeLabel = `${decade}s`;
+    decadeCounts[decadeLabel] = (decadeCounts[decadeLabel] || 0) + 1;
+  }
+  const byDecade = Object.entries(decadeCounts)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([decade, count]) => ({ decade, count }));
+  
+  // Reading pace stats (days between dateAdded and dateRead)
+  const booksWithPaceData = readBooks.filter(b => b.dateAdded && b.dateRead);
+  const paceData = booksWithPaceData.map(b => {
+    const added = new Date(b.dateAdded!);
+    const read = new Date(b.dateRead!);
+    const days = Math.max(0, Math.round((read.getTime() - added.getTime()) / (1000 * 60 * 60 * 24)));
+    return { book: b, days };
+  }).filter(p => p.days >= 0 && p.days < 3650); // Filter out unreasonable values (>10 years)
+  
+  const averageDaysToRead = paceData.length > 0
+    ? Math.round(paceData.reduce((sum, p) => sum + p.days, 0) / paceData.length)
+    : 0;
+  
+  const sortedByPace = [...paceData].sort((a, b) => a.days - b.days);
+  const fastestRead = sortedByPace[0]
+    ? { title: sortedByPace[0].book.title, author: sortedByPace[0].book.author, days: sortedByPace[0].days }
+    : null;
+  // Get slowest that's not the same as fastest
+  const slowestCandidate = sortedByPace[sortedByPace.length - 1];
+  const slowestRead = slowestCandidate && slowestCandidate.days > 0
+    ? { title: slowestCandidate.book.title, author: slowestCandidate.book.author, days: slowestCandidate.days }
+    : null;
+  
   return {
     totalBooks: books.length,
     booksRead: readBooks.length,
@@ -104,6 +157,18 @@ export function calculateStats(books: Book[]): BookStats {
     ratingDistribution,
     yearlyReading,
     monthlyReading,
+    publicationEra: {
+      averageYear: averagePubYear,
+      oldestBook,
+      newestBook,
+      byDecade,
+    },
+    readingPace: {
+      averageDaysToRead,
+      fastestRead,
+      slowestRead,
+      booksWithPaceData: paceData.length,
+    },
   };
 }
 

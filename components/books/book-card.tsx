@@ -13,8 +13,32 @@ interface BookCardProps {
   compact?: boolean;
 }
 
+// Generate initials from title for placeholder
+function getBookInitials(title: string): string {
+  const words = title.split(/\s+/).filter(w => w.length > 0);
+  if (words.length === 1) {
+    return words[0].substring(0, 2).toUpperCase();
+  }
+  return words.slice(0, 2).map(w => w[0]).join('').toUpperCase();
+}
+
+// Generate a consistent color based on title
+function getPlaceholderColor(title: string): string {
+  const colors = [
+    'from-indigo-500 to-purple-600',
+    'from-amber-500 to-orange-600',
+    'from-emerald-500 to-teal-600',
+    'from-rose-500 to-pink-600',
+    'from-sky-500 to-blue-600',
+    'from-violet-500 to-fuchsia-600',
+  ];
+  const hash = title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return colors[hash % colors.length];
+}
+
 export function BookCard({ book, showGenres = true, compact = false }: BookCardProps) {
   const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
   
   const renderRating = () => {
     if (!book.myRating) return null;
@@ -42,7 +66,7 @@ export function BookCard({ book, showGenres = true, compact = false }: BookCardP
     return (
       <div className="flex items-center gap-3 p-3 bg-card rounded-lg border hover:bg-muted/50 transition-colors">
         {/* Cover */}
-        <div className="w-10 h-14 flex-shrink-0 bg-muted rounded overflow-hidden">
+        <div className="w-10 h-14 flex-shrink-0 rounded overflow-hidden">
           {coverUrl ? (
             <img
               src={coverUrl}
@@ -51,8 +75,11 @@ export function BookCard({ book, showGenres = true, compact = false }: BookCardP
               onError={() => setImageError(true)}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <BookOpen className="w-4 h-4 text-muted-foreground" />
+            <div className={cn(
+              'w-full h-full flex items-center justify-center bg-gradient-to-br',
+              getPlaceholderColor(book.title)
+            )}>
+              <span className="text-xs font-bold text-white/90">{getBookInitials(book.title)}</span>
             </div>
           )}
         </div>
@@ -79,16 +106,34 @@ export function BookCard({ book, showGenres = true, compact = false }: BookCardP
       {/* Cover Image */}
       <div className="aspect-[2/3] bg-muted relative overflow-hidden">
         {coverUrl ? (
-          <img
-            src={coverUrl}
-            alt={book.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            onError={() => setImageError(true)}
-          />
+          <>
+            {/* Show placeholder while loading */}
+            {!imageLoaded && (
+              <div className={cn(
+                'absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br',
+                getPlaceholderColor(book.title)
+              )}>
+                <span className="text-3xl font-bold text-white/90">{getBookInitials(book.title)}</span>
+              </div>
+            )}
+            <img
+              src={coverUrl}
+              alt={book.title}
+              className={cn(
+                'w-full h-full object-cover group-hover:scale-105 transition-transform duration-300',
+                !imageLoaded && 'opacity-0'
+              )}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageError(true)}
+            />
+          </>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center">
-            <BookOpen className="w-12 h-12 text-muted-foreground/50 mb-2" />
-            <span className="text-xs text-muted-foreground line-clamp-2">{book.title}</span>
+          <div className={cn(
+            'w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-br',
+            getPlaceholderColor(book.title)
+          )}>
+            <span className="text-3xl font-bold text-white/90 mb-2">{getBookInitials(book.title)}</span>
+            <span className="text-xs text-white/70 line-clamp-2 px-2">{book.title}</span>
           </div>
         )}
       </div>

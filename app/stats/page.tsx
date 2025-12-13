@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { BookOpen, Users, Star, FileText, TrendingUp, Award, RefreshCw, Loader2 } from 'lucide-react';
+import { BookOpen, Users, Star, FileText, TrendingUp, Award, RefreshCw, Loader2, Calendar, Clock, History, Zap } from 'lucide-react';
 import { getBooks, saveBooks } from '@/lib/storage';
 import { calculateStats } from '@/lib/stats';
 import { Book, BookStats } from '@/lib/types';
@@ -161,6 +161,114 @@ export default function StatsPage() {
           subtitle={`${stats.uniqueGenres} genres`}
           icon={<Users className="w-5 h-5" />}
         />
+      </div>
+      
+      {/* Publication Era & Reading Pace */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {/* Publication Era */}
+        {stats.publicationEra.averageYear > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <History className="w-5 h-5 text-primary" />
+                Publication Era
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                When your books were originally published
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                <span className="text-sm text-muted-foreground">Average Publication Year</span>
+                <span className="text-2xl font-bold text-primary">{stats.publicationEra.averageYear}</span>
+              </div>
+              
+              {stats.publicationEra.oldestBook && (
+                <div className="p-3 bg-secondary/50 rounded-lg border border-border/50">
+                  <p className="text-xs text-muted-foreground mb-1">Oldest Read</p>
+                  <p className="font-medium text-sm truncate">{stats.publicationEra.oldestBook.title}</p>
+                  <p className="text-xs text-muted-foreground">{stats.publicationEra.oldestBook.author} ({stats.publicationEra.oldestBook.year})</p>
+                </div>
+              )}
+              
+              {stats.publicationEra.newestBook && (
+                <div className="p-3 bg-secondary/50 rounded-lg border border-border/50">
+                  <p className="text-xs text-muted-foreground mb-1">Newest Read</p>
+                  <p className="font-medium text-sm truncate">{stats.publicationEra.newestBook.title}</p>
+                  <p className="text-xs text-muted-foreground">{stats.publicationEra.newestBook.author} ({stats.publicationEra.newestBook.year})</p>
+                </div>
+              )}
+              
+              {stats.publicationEra.byDecade.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">By Decade</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {stats.publicationEra.byDecade.slice(-6).map(d => (
+                      <div key={d.decade} className="text-center p-2 bg-muted rounded">
+                        <p className="text-xs text-muted-foreground">{d.decade}</p>
+                        <p className="font-bold text-sm">{d.count}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+        
+        {/* Reading Pace */}
+        {stats.readingPace.booksWithPaceData > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Clock className="w-5 h-5 text-primary" />
+                Reading Pace
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Time from adding a book to finishing it
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex justify-between items-center p-3 bg-muted rounded-lg">
+                <span className="text-sm text-muted-foreground">Average Days to Read</span>
+                <span className="text-2xl font-bold text-primary">
+                  {stats.readingPace.averageDaysToRead}
+                  <span className="text-sm font-normal text-muted-foreground ml-1">days</span>
+                </span>
+              </div>
+              
+              {stats.readingPace.fastestRead && (
+                <div className="p-3 bg-green-50 dark:bg-green-950/30 rounded-lg border border-green-200 dark:border-green-900">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Zap className="w-4 h-4 text-green-600 dark:text-green-400" />
+                    <p className="text-xs font-medium text-green-700 dark:text-green-400">Fastest Read</p>
+                  </div>
+                  <p className="font-medium text-sm truncate">{stats.readingPace.fastestRead.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.readingPace.fastestRead.author} — {stats.readingPace.fastestRead.days} days
+                  </p>
+                </div>
+              )}
+              
+              {stats.readingPace.slowestRead && stats.readingPace.slowestRead.days !== stats.readingPace.fastestRead?.days && (
+                <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-900">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Calendar className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    <p className="text-xs font-medium text-amber-700 dark:text-amber-400">Slowest Read</p>
+                  </div>
+                  <p className="font-medium text-sm truncate">{stats.readingPace.slowestRead.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {stats.readingPace.slowestRead.author} — {stats.readingPace.slowestRead.days} days
+                  </p>
+                </div>
+              )}
+              
+              <p className="text-xs text-muted-foreground text-center">
+                Based on {stats.readingPace.booksWithPaceData} books with complete date data
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </div>
       
       {/* Charts Section */}

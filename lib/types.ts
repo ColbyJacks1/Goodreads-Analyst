@@ -38,6 +38,20 @@ export interface BookStats {
   ratingDistribution: { rating: number; count: number }[];
   yearlyReading: { year: number; count: number }[];
   monthlyReading: { month: string; count: number }[];
+  // Publication era stats
+  publicationEra: {
+    averageYear: number;
+    oldestBook: { title: string; author: string; year: number } | null;
+    newestBook: { title: string; author: string; year: number } | null;
+    byDecade: { decade: string; count: number }[];
+  };
+  // Reading pace stats
+  readingPace: {
+    averageDaysToRead: number;
+    fastestRead: { title: string; author: string; days: number } | null;
+    slowestRead: { title: string; author: string; days: number } | null;
+    booksWithPaceData: number;
+  };
 }
 
 export interface YearStats {

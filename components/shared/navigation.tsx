@@ -7,6 +7,7 @@ import { BookOpen, BarChart3, Sparkles, BookMarked, Calendar, Menu, X } from 'lu
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { hasBooks } from '@/lib/storage';
+import { DemoBanner } from './demo-banner';
 
 const navItems = [
   { href: '/', label: 'Home', icon: BookOpen },
@@ -30,7 +31,9 @@ export function Navigation() {
   );
   
   return (
-    <nav className="sticky top-0 z-50 w-full border-b-2 border-primary/20 bg-background shadow-sm">
+    <>
+      <DemoBanner />
+      <nav className="sticky top-0 z-50 w-full border-b-2 border-primary/20 bg-background shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -108,5 +111,6 @@ export function Navigation() {
         )}
       </div>
     </nav>
+    </>
   );
 }

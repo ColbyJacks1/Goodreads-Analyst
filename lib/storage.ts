@@ -1,17 +1,28 @@
 // localStorage helpers for persisting book data and analysis
 
 import { Book, FullAnalysis, STORAGE_KEYS } from './types';
+import { DEMO_BOOKS, DEMO_ANALYSIS } from './demo-data';
+
+const DEMO_MODE_KEY = 'goodreads_demo_mode';
 
 // Check if we're in browser environment
 const isBrowser = typeof window !== 'undefined';
 
 /**
  * Save books to localStorage
+ * Automatically exits demo mode when saving real user data
  */
-export function saveBooks(books: Book[]): void {
+export function saveBooks(books: Book[], isDemo: boolean = false): void {
   if (!isBrowser) return;
   
   try {
+    // Exit demo mode when saving real user data
+    if (!isDemo) {
+      localStorage.removeItem(DEMO_MODE_KEY);
+      // Clear any existing analysis when new data is uploaded
+      localStorage.removeItem(STORAGE_KEYS.ANALYSIS);
+    }
+    
     localStorage.setItem(STORAGE_KEYS.BOOKS, JSON.stringify(books));
     localStorage.setItem(STORAGE_KEYS.LAST_UPDATED, new Date().toISOString());
   } catch (error) {
@@ -134,6 +145,74 @@ export function getLastUpdated(): string | null {
     return localStorage.getItem(STORAGE_KEYS.LAST_UPDATED);
   } catch {
     return null;
+  }
+}
+
+// ============================================
+// Demo Mode Helpers
+// ============================================
+
+/**
+ * Check if currently in demo mode
+ */
+export function isDemoMode(): boolean {
+  if (!isBrowser) return false;
+  
+  try {
+    return localStorage.getItem(DEMO_MODE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Load demo data into storage
+ */
+export function loadDemoData(): void {
+  if (!isBrowser) return;
+  
+  try {
+    // Set demo mode flag
+    localStorage.setItem(DEMO_MODE_KEY, 'true');
+    
+    // Load demo books
+    localStorage.setItem(STORAGE_KEYS.BOOKS, JSON.stringify(DEMO_BOOKS));
+    localStorage.setItem(STORAGE_KEYS.LAST_UPDATED, new Date().toISOString());
+    
+    // Load pre-generated analysis
+    localStorage.setItem(STORAGE_KEYS.ANALYSIS, JSON.stringify(DEMO_ANALYSIS));
+  } catch (error) {
+    console.error('Failed to load demo data:', error);
+  }
+}
+
+/**
+ * Clear demo mode and data
+ */
+export function clearDemoData(): void {
+  if (!isBrowser) return;
+  
+  try {
+    localStorage.removeItem(DEMO_MODE_KEY);
+    localStorage.removeItem(STORAGE_KEYS.BOOKS);
+    localStorage.removeItem(STORAGE_KEYS.LAST_UPDATED);
+    localStorage.removeItem(STORAGE_KEYS.ANALYSIS);
+  } catch (error) {
+    console.error('Failed to clear demo data:', error);
+  }
+}
+
+/**
+ * Exit demo mode when user uploads their own data
+ * This is called automatically when saveBooks is used with non-demo data
+ */
+export function exitDemoMode(): void {
+  if (!isBrowser) return;
+  
+  try {
+    localStorage.removeItem(DEMO_MODE_KEY);
+  } catch (error) {
+    console.error('Failed to exit demo mode:', error);
   }
 }
 

@@ -38,6 +38,7 @@ export function hasValidCachedAnalysis(): boolean {
 
 /**
  * Start background analysis (non-blocking)
+ * @param books - Array of books to analyze
  */
 export function startBackgroundAnalysis(books: Book[]): void {
   // Don't start if already running
