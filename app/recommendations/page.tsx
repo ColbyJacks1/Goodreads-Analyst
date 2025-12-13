@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, BookOpen, Loader2 } from 'lucide-react';
 import { getBooks } from '@/lib/storage';
+import { track } from '@vercel/analytics';
 import { Book, BookRecommendation } from '@/lib/types';
 import { PromptInput } from '@/components/recommendations/prompt-input';
 import { RecommendationResults } from '@/components/recommendations/recommendation-results';
@@ -52,6 +53,7 @@ export default function RecommendationsPage() {
       }
       
       setRecommendations(data.recommendations || []);
+      track('recommendation_requested', { prompt: prompt.slice(0, 50) });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate recommendations');
     } finally {

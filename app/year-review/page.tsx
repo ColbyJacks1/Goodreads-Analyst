@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Calendar, BookOpen } from 'lucide-react';
 import { getBooks } from '@/lib/storage';
 import { getYearsWithData, calculateYearStats } from '@/lib/stats';
+import { track } from '@vercel/analytics';
 import { Book, YearStats } from '@/lib/types';
 import { YearSelector } from '@/components/year-review/year-selector';
 import { YearStatsDisplay } from '@/components/year-review/year-stats';
@@ -79,6 +80,7 @@ export default function YearReviewPage() {
       
       if (data.success && data.summary) {
         setYearSummary(data.summary);
+        track('year_summary_generated', { year: selectedYear, bookCount: yearBooks.length });
       } else {
         setSummaryError(data.error || 'Failed to generate summary');
       }

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Sparkles, Flame, User, Lightbulb, BookOpen, Loader2, RefreshCw } from 'lucide-react';
 import { getBooks, getAnalysis, saveAnalysis } from '@/lib/storage';
 import { getAnalysisStatus, startBackgroundAnalysis, waitForAnalysis } from '@/lib/background-analysis';
+import { track } from '@vercel/analytics';
 import { Book, FullAnalysis } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -90,6 +91,7 @@ export default function AnalyzePage() {
       // Save to localStorage and state
       saveAnalysis(data.analysis);
       setAnalysis(data.analysis);
+      track('analysis_generated', { bookCount: books.length });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed');
     } finally {

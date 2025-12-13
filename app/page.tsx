@@ -15,6 +15,7 @@ import { parseGoodreadsCsv } from '@/lib/csv-parser';
 import { saveBooks, getBookCount, clearBooks, clearAnalysis, loadDemoData, isDemoMode, clearDemoData } from '@/lib/storage';
 import { normalizeBookshelves } from '@/lib/genre-normalizer';
 import { startBackgroundAnalysis, resetAnalysisState } from '@/lib/background-analysis';
+import { track } from '@vercel/analytics';
 import { Book, ImportProgress } from '@/lib/types';
 
 export default function HomePage() {
@@ -119,6 +120,10 @@ export default function HomePage() {
       saveBooks(enrichedBooks);
       setExistingBookCount(enrichedBooks.length);
       
+      // Track CSV upload
+      const readCount = enrichedBooks.filter(b => b.exclusiveShelf === 'read').length;
+      track('csv_uploaded', { totalBooks: enrichedBooks.length, booksRead: readCount });
+      
       // Start AI analysis in the background immediately
       startBackgroundAnalysis(enrichedBooks);
       
@@ -164,6 +169,7 @@ export default function HomePage() {
     loadDemoData();
     setExistingBookCount(28); // Demo has ~28 read books
     setIsDemo(true);
+    track('demo_started');
     router.push('/stats');
   }, [router]);
   

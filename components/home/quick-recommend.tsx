@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Loader2, Sparkles, BookOpen, ArrowRight, ExternalLink } from 'lucide-react';
+import { track } from '@vercel/analytics';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -41,6 +42,7 @@ export function QuickRecommend() {
 
       const data = await response.json();
       setRecommendations(data.recommendations || []);
+      track('quick_recommendation', { likedBook: bookInput.slice(0, 50) });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
@@ -178,6 +180,7 @@ export function QuickRecommendCompact() {
         const data = await response.json();
         setRecommendations(data.recommendations || []);
         setShowResults(true);
+        track('quick_recommendation', { likedBook: bookInput.slice(0, 50) });
       }
     } catch {
       // Silently fail for compact version
