@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { HelpCircle, ExternalLink, Download, Upload, CheckCircle, X } from 'lucide-react';
+import { HelpCircle, ExternalLink, Download, Upload, CheckCircle, X, Smartphone, Apple, MonitorSmartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ExportGuideProps {
   variant?: 'modal' | 'inline' | 'tooltip';
@@ -79,30 +80,64 @@ export function ExportGuide({ variant = 'inline', onClose }: ExportGuideProps) {
 }
 
 function ExportSteps({ steps }: { steps: { number: number; title: string; description: string; link?: string }[] }) {
+  const mobileStepsIOS = [
+    { number: 1, title: 'Open Goodreads in Safari', description: 'Go to goodreads.com and sign in (use Safari, not the app)' },
+    { number: 2, title: 'Go to Export Page', description: 'Navigate to My Books → Import and Export', link: 'https://www.goodreads.com/review/import' },
+    { number: 3, title: 'Click "Export Library"', description: 'Tap the export button and wait for it to complete' },
+    { number: 4, title: 'Save the File', description: 'When the download appears, tap the Share icon (square with arrow)' },
+    { number: 5, title: 'Choose "Save to Files"', description: 'Select a location like iCloud Drive or On My iPhone' },
+    { number: 6, title: 'Upload Here', description: 'Return to this site, tap "Browse" and select your saved CSV' },
+  ];
+
+  const mobileStepsAndroid = [
+    { number: 1, title: 'Open Goodreads in Chrome', description: 'Go to goodreads.com and sign in (use Chrome, not the app)' },
+    { number: 2, title: 'Go to Export Page', description: 'Navigate to My Books → Import and Export', link: 'https://www.goodreads.com/review/import' },
+    { number: 3, title: 'Click "Export Library"', description: 'Tap the export button and wait for it to complete' },
+    { number: 4, title: 'Download the File', description: 'Long-press the download link and select "Download link"' },
+    { number: 5, title: 'Find in Downloads', description: 'The file will be in your Downloads folder' },
+    { number: 6, title: 'Upload Here', description: 'Return to this site, tap "Browse" and select your CSV from Downloads' },
+  ];
+
   return (
     <div className="space-y-4">
-      {steps.map((step) => (
-        <div key={step.number} className="flex gap-4">
-          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-sm font-bold text-primary">{step.number}</span>
+      <Tabs defaultValue="desktop" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsTrigger value="desktop" className="text-xs sm:text-sm">
+            <MonitorSmartphone className="w-4 h-4 mr-1 hidden sm:inline" />
+            Desktop
+          </TabsTrigger>
+          <TabsTrigger value="ios" className="text-xs sm:text-sm">
+            <Apple className="w-4 h-4 mr-1 hidden sm:inline" />
+            iPhone
+          </TabsTrigger>
+          <TabsTrigger value="android" className="text-xs sm:text-sm">
+            <Smartphone className="w-4 h-4 mr-1 hidden sm:inline" />
+            Android
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="desktop">
+          <StepList steps={steps} />
+        </TabsContent>
+
+        <TabsContent value="ios">
+          <div className="mb-3 p-2 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+            <p className="text-xs text-amber-800 dark:text-amber-200">
+              Tip: Use Safari browser, not the Goodreads app
+            </p>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground">{step.title}</p>
-            <p className="text-sm text-foreground/70">{step.description}</p>
-            {step.link && (
-              <a
-                href={step.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-1"
-              >
-                Open Goodreads Export Page
-                <ExternalLink className="w-3 h-3" />
-              </a>
-            )}
+          <StepList steps={mobileStepsIOS} />
+        </TabsContent>
+
+        <TabsContent value="android">
+          <div className="mb-3 p-2 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+            <p className="text-xs text-amber-800 dark:text-amber-200">
+              Tip: Use Chrome browser, not the Goodreads app
+            </p>
           </div>
-        </div>
-      ))}
+          <StepList steps={mobileStepsAndroid} />
+        </TabsContent>
+      </Tabs>
       
       <div className="pt-4 border-t">
         <a
@@ -117,6 +152,35 @@ function ExportSteps({ steps }: { steps: { number: number; title: string; descri
           </Button>
         </a>
       </div>
+    </div>
+  );
+}
+
+function StepList({ steps }: { steps: { number: number; title: string; description: string; link?: string }[] }) {
+  return (
+    <div className="space-y-3">
+      {steps.map((step) => (
+        <div key={step.number} className="flex gap-3">
+          <div className="flex-shrink-0 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-xs font-bold text-primary">{step.number}</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm text-foreground">{step.title}</p>
+            <p className="text-xs text-foreground/70">{step.description}</p>
+            {step.link && (
+              <a
+                href={step.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1"
+              >
+                Open Export Page
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

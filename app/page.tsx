@@ -257,6 +257,22 @@ export default function HomePage() {
                     <ExportGuideButton />
                   </div>
                   
+                  {/* Mobile hint */}
+                  <p className="text-center text-xs text-muted-foreground">
+                    Works best on desktop. On mobile? Try the{' '}
+                    <button 
+                      onClick={handleTryDemo} 
+                      className="text-primary hover:underline"
+                    >
+                      demo
+                    </button>
+                    {' '}or{' '}
+                    <a href="#quick-rec" className="text-primary hover:underline">
+                      quick recommendations
+                    </a>
+                    {' '}below.
+                  </p>
+                  
                   {/* Demo option */}
                   <div className="flex items-center gap-4">
                     <div className="flex-1 h-px bg-border" />
@@ -289,7 +305,7 @@ export default function HomePage() {
         {existingBookCount === 0 && progress.stage === 'idle' && (
           <>
             {/* Quick Recommendation */}
-            <Card className="mt-12 border-dashed">
+            <Card id="quick-rec" className="mt-12 border-dashed scroll-mt-8">
               <CardContent className="p-6">
                 <QuickRecommendCompact />
               </CardContent>
