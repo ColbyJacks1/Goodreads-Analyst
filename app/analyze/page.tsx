@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Sparkles, Flame, User, Lightbulb, BookOpen, Loader2, RefreshCw } from 'lucide-react';
 import { getBooks, getAnalysis, saveAnalysis } from '@/lib/storage';
 import { getAnalysisStatus, startBackgroundAnalysis, waitForAnalysis } from '@/lib/background-analysis';
-import { Book } from '@/lib/types';
+import { Book, FullAnalysis } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,19 +14,12 @@ import { RecommendationList } from '@/components/analysis/recommendation-card';
 import { ProfileCard } from '@/components/analysis/profile-card';
 import { InsightCard } from '@/components/analysis/insight-card';
 
-interface AnalysisData {
-  roast?: { raw: string };
-  recommendations?: { raw: string };
-  insights?: { raw: string };
-  profile?: { raw: string };
-}
-
 export default function AnalyzePage() {
   const router = useRouter();
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
-  const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
+  const [analysis, setAnalysis] = useState<FullAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('roast');
   
