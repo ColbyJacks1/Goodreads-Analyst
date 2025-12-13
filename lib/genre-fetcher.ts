@@ -139,72 +139,50 @@ function mapSubjectsToGenres(subjects: string[]): string[] {
   return Array.from(genres).slice(0, 3); // Max 3 genres per book
 }
 
-// Try multiple methods to get genres for a book
+// Fast search-based genre lookup
 async function fetchGenresForBook(book: Book): Promise<string[]> {
   const isbn = book.isbn13 || book.isbn;
   
-  // Method 1: Try ISBN lookup via works endpoint (most complete data)
+  // Try ISBN search first (fastest, single call)
   if (isbn) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
       
-      // First get the edition to find the work
-      const editionResponse = await fetch(
-        `https://openlibrary.org/isbn/${isbn}.json`,
+      const response = await fetch(
+        `https://openlibrary.org/search.json?isbn=${isbn}&fields=subject&limit=1`,
         { signal: controller.signal }
       );
       clearTimeout(timeoutId);
       
-      if (editionResponse.ok) {
-        const edition = await editionResponse.json();
-        
-        // If edition has subjects, use them
-        if (edition.subjects && edition.subjects.length > 0) {
-          const genres = mapSubjectsToGenres(edition.subjects);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.docs?.[0]?.subject) {
+          const genres = mapSubjectsToGenres(data.docs[0].subject);
           if (genres.length > 0) return genres;
-        }
-        
-        // Otherwise try to get the work for more subjects
-        if (edition.works && edition.works[0]?.key) {
-          const workController = new AbortController();
-          const workTimeoutId = setTimeout(() => workController.abort(), 5000);
-          
-          const workResponse = await fetch(
-            `https://openlibrary.org${edition.works[0].key}.json`,
-            { signal: workController.signal }
-          );
-          clearTimeout(workTimeoutId);
-          
-          if (workResponse.ok) {
-            const work = await workResponse.json();
-            if (work.subjects && work.subjects.length > 0) {
-              const genres = mapSubjectsToGenres(work.subjects);
-              if (genres.length > 0) return genres;
-            }
-          }
         }
       }
     } catch {
-      // Continue to next method
+      // Continue to title search
     }
   }
   
-  // Method 2: Search by title and author
+  // Fallback: Search by title + author (still fast, single call)
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
     
-    const query = encodeURIComponent(`${book.title} ${book.author}`);
-    const searchResponse = await fetch(
-      `https://openlibrary.org/search.json?q=${query}&fields=subject&limit=1`,
+    // Use just title for faster/better matching
+    const query = encodeURIComponent(book.title);
+    const response = await fetch(
+      `https://openlibrary.org/search.json?title=${query}&fields=subject&limit=1`,
       { signal: controller.signal }
     );
     clearTimeout(timeoutId);
     
-    if (searchResponse.ok) {
-      const data = await searchResponse.json();
-      if (data.docs && data.docs[0]?.subject) {
+    if (response.ok) {
+      const data = await response.json();
+      if (data.docs?.[0]?.subject) {
         const genres = mapSubjectsToGenres(data.docs[0].subject);
         if (genres.length > 0) return genres;
       }
@@ -247,8 +225,8 @@ export async function enrichBooksWithGenres(
   let enriched = 0;
   let processed = 0;
   
-  // Process in parallel batches of 10 (more conservative to avoid rate limits)
-  const BATCH_SIZE = 10;
+  // Process in larger parallel batches for speed
+  const BATCH_SIZE = 20;
   
   for (let i = 0; i < booksNeedingGenres.length; i += BATCH_SIZE) {
     if (signal?.aborted) break;
@@ -284,9 +262,9 @@ export async function enrichBooksWithGenres(
       booksEnriched: enriched,
     });
     
-    // Delay between batches to avoid rate limiting
+    // Small delay between batches to avoid rate limiting
     if (i + BATCH_SIZE < booksNeedingGenres.length) {
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
   }
   
