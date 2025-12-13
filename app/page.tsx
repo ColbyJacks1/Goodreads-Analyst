@@ -13,7 +13,6 @@ import { QuickRecommendCompact } from '@/components/home/quick-recommend';
 import { EXAMPLE_PREVIEWS } from '@/lib/demo-data';
 import { parseGoodreadsCsv } from '@/lib/csv-parser';
 import { saveBooks, getBookCount, clearBooks, clearAnalysis, loadDemoData, isDemoMode, clearDemoData } from '@/lib/storage';
-import { normalizeBookshelves } from '@/lib/genre-normalizer';
 import { startBackgroundAnalysis, resetAnalysisState } from '@/lib/background-analysis';
 import { track } from '@vercel/analytics';
 import { Book, ImportProgress } from '@/lib/types';
@@ -51,7 +50,7 @@ export default function HomePage() {
       
       return {
         ...book,
-        genres: normalizeBookshelves(book.bookshelves),
+        genres: [], // Will be fetched from Open Library on stats page
         coverUrl,
       };
     });

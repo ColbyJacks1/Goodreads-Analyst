@@ -163,6 +163,30 @@ export default function StatsPage() {
         />
       </div>
       
+      {/* Reading Timeline - moved up */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary" />
+            Reading Over Time
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="yearly">
+            <TabsList className="mb-4">
+              <TabsTrigger value="yearly">By Year</TabsTrigger>
+              <TabsTrigger value="monthly">Last 12 Months</TabsTrigger>
+            </TabsList>
+            <TabsContent value="yearly">
+              <TimelineChart data={stats.yearlyReading} type="yearly" />
+            </TabsContent>
+            <TabsContent value="monthly">
+              <TimelineChart data={stats.monthlyReading} type="monthly" />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+      
       {/* Publication Era & Reading Pace */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Publication Era */}
@@ -333,30 +357,6 @@ export default function StatsPage() {
           </CardContent>
         </Card>
       </div>
-      
-      {/* Reading Timeline */}
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
-            Reading Over Time
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="yearly">
-            <TabsList className="mb-4">
-              <TabsTrigger value="yearly">By Year</TabsTrigger>
-              <TabsTrigger value="monthly">Last 12 Months</TabsTrigger>
-            </TabsList>
-            <TabsContent value="yearly">
-              <TimelineChart data={stats.yearlyReading} type="yearly" />
-            </TabsContent>
-            <TabsContent value="monthly">
-              <TimelineChart data={stats.monthlyReading} type="monthly" />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
       
       {/* Top Authors */}
       {stats.topAuthors.length > 0 && (

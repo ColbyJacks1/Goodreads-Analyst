@@ -2,7 +2,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchBookByIsbn } from '@/lib/open-library';
-import { normalizeBookshelves } from '@/lib/genre-normalizer';
 
 interface BookToEnrich {
   isbn: string | null;
@@ -56,11 +55,6 @@ export async function POST(request: NextRequest) {
         } catch (error) {
           console.error(`Failed to fetch from Open Library for ${isbn}:`, error);
         }
-      }
-      
-      // Fallback to bookshelves normalization if no genres from Open Library
-      if (genres.length === 0 && book.bookshelves) {
-        genres = normalizeBookshelves(book.bookshelves);
       }
       
       // Always try to get cover URL even if other data failed
