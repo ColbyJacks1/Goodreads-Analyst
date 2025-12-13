@@ -2,71 +2,124 @@
 
 import { Book } from './types';
 
-// Map Open Library subjects to our genres
+// Map Open Library subjects to our genres - expanded for better matching
 const SUBJECT_TO_GENRE: Record<string, string> = {
   // Fiction
   'fiction': 'fiction',
   'literature': 'fiction',
   'novels': 'fiction',
+  'novel': 'fiction',
+  'literary fiction': 'fiction',
+  'general fiction': 'fiction',
   'science fiction': 'science_fiction',
   'sci-fi': 'science_fiction',
+  'scifi': 'science_fiction',
+  'space opera': 'science_fiction',
+  'dystopian': 'science_fiction',
+  'cyberpunk': 'science_fiction',
   'fantasy': 'fantasy',
   'fantasy fiction': 'fantasy',
+  'epic fantasy': 'fantasy',
+  'urban fantasy': 'fantasy',
+  'high fantasy': 'fantasy',
+  'dark fantasy': 'fantasy',
+  'magic': 'fantasy',
   'mystery': 'mystery',
   'mystery fiction': 'mystery',
   'detective': 'mystery',
+  'detective fiction': 'mystery',
+  'crime': 'mystery',
+  'crime fiction': 'mystery',
   'thriller': 'thriller',
   'thrillers': 'thriller',
   'suspense': 'thriller',
+  'psychological thriller': 'thriller',
   'romance': 'romance',
   'love stories': 'romance',
+  'romantic fiction': 'romance',
+  'contemporary romance': 'romance',
   'historical fiction': 'historical_fiction',
+  'historical novel': 'historical_fiction',
   'history': 'history',
   'horror': 'horror',
   'horror fiction': 'horror',
+  'supernatural': 'horror',
+  'gothic': 'horror',
+  'adventure': 'adventure',
+  'action': 'adventure',
   
   // Non-fiction
   'biography': 'biography',
   'biographies': 'biography',
   'autobiography': 'biography',
+  'autobiographies': 'biography',
   'memoir': 'biography',
   'memoirs': 'biography',
   'philosophy': 'philosophy',
   'philosophers': 'philosophy',
+  'ethics': 'philosophy',
   'science': 'science',
   'popular science': 'science',
+  'physics': 'science',
+  'biology': 'science',
+  'chemistry': 'science',
+  'nature': 'science',
   'psychology': 'psychology',
   'self-help': 'self_help',
+  'self help': 'self_help',
   'personal development': 'self_help',
   'business': 'business',
   'economics': 'business',
+  'finance': 'business',
+  'management': 'business',
   'politics': 'politics',
   'political science': 'politics',
   'religion': 'religion',
   'spirituality': 'religion',
   'christianity': 'religion',
+  'buddhism': 'religion',
   'art': 'art',
   'artists': 'art',
+  'music': 'art',
   'poetry': 'poetry',
   'poems': 'poetry',
   'humor': 'humor',
   'comedy': 'humor',
+  'humorous fiction': 'humor',
   'travel': 'travel',
   'cooking': 'cookbook',
   'cookbooks': 'cookbook',
+  'food': 'cookbook',
   
   // Age categories
   'young adult': 'young_adult',
   'young adult fiction': 'young_adult',
+  'ya': 'young_adult',
+  'teen': 'young_adult',
   'juvenile fiction': 'children',
   'children\'s fiction': 'children',
+  'children': 'children',
+  'picture books': 'children',
+  
+  // Additional common subjects
+  'war': 'history',
+  'world war': 'history',
+  'military': 'history',
+  'american literature': 'fiction',
+  'english literature': 'fiction',
+  'british literature': 'fiction',
+  'classics': 'classics',
+  'classic literature': 'classics',
+  'graphic novels': 'comics',
+  'comics': 'comics',
+  'manga': 'comics',
 };
 
 function mapSubjectsToGenres(subjects: string[]): string[] {
   const genres = new Set<string>();
   
   for (const subject of subjects) {
-    const lower = subject.toLowerCase();
+    const lower = subject.toLowerCase().trim();
     
     // Direct match
     if (SUBJECT_TO_GENRE[lower]) {
@@ -74,9 +127,9 @@ function mapSubjectsToGenres(subjects: string[]): string[] {
       continue;
     }
     
-    // Partial match
+    // Partial match - check if any key is contained in the subject
     for (const [key, genre] of Object.entries(SUBJECT_TO_GENRE)) {
-      if (lower.includes(key) || key.includes(lower)) {
+      if (lower.includes(key)) {
         genres.add(genre);
         break;
       }
@@ -86,30 +139,81 @@ function mapSubjectsToGenres(subjects: string[]): string[] {
   return Array.from(genres).slice(0, 3); // Max 3 genres per book
 }
 
-async function fetchGenresForBook(isbn: string): Promise<string[]> {
+// Try multiple methods to get genres for a book
+async function fetchGenresForBook(book: Book): Promise<string[]> {
+  const isbn = book.isbn13 || book.isbn;
+  
+  // Method 1: Try ISBN lookup via works endpoint (most complete data)
+  if (isbn) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      // First get the edition to find the work
+      const editionResponse = await fetch(
+        `https://openlibrary.org/isbn/${isbn}.json`,
+        { signal: controller.signal }
+      );
+      clearTimeout(timeoutId);
+      
+      if (editionResponse.ok) {
+        const edition = await editionResponse.json();
+        
+        // If edition has subjects, use them
+        if (edition.subjects && edition.subjects.length > 0) {
+          const genres = mapSubjectsToGenres(edition.subjects);
+          if (genres.length > 0) return genres;
+        }
+        
+        // Otherwise try to get the work for more subjects
+        if (edition.works && edition.works[0]?.key) {
+          const workController = new AbortController();
+          const workTimeoutId = setTimeout(() => workController.abort(), 5000);
+          
+          const workResponse = await fetch(
+            `https://openlibrary.org${edition.works[0].key}.json`,
+            { signal: workController.signal }
+          );
+          clearTimeout(workTimeoutId);
+          
+          if (workResponse.ok) {
+            const work = await workResponse.json();
+            if (work.subjects && work.subjects.length > 0) {
+              const genres = mapSubjectsToGenres(work.subjects);
+              if (genres.length > 0) return genres;
+            }
+          }
+        }
+      }
+    } catch {
+      // Continue to next method
+    }
+  }
+  
+  // Method 2: Search by title and author
   try {
-    // Use search API which is faster than individual lookups
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     
-    const response = await fetch(
-      `https://openlibrary.org/search.json?isbn=${isbn}&fields=subject&limit=1`,
+    const query = encodeURIComponent(`${book.title} ${book.author}`);
+    const searchResponse = await fetch(
+      `https://openlibrary.org/search.json?q=${query}&fields=subject&limit=1`,
       { signal: controller.signal }
     );
     clearTimeout(timeoutId);
     
-    if (!response.ok) return [];
-    
-    const data = await response.json();
-    
-    if (data.docs && data.docs[0]?.subject) {
-      return mapSubjectsToGenres(data.docs[0].subject);
+    if (searchResponse.ok) {
+      const data = await searchResponse.json();
+      if (data.docs && data.docs[0]?.subject) {
+        const genres = mapSubjectsToGenres(data.docs[0].subject);
+        if (genres.length > 0) return genres;
+      }
     }
-    
-    return [];
   } catch {
-    return [];
+    // No genres found
   }
+  
+  return [];
 }
 
 export interface EnrichmentProgress {
@@ -127,11 +231,9 @@ export async function enrichBooksWithGenres(
   onProgress?: (progress: EnrichmentProgress) => void,
   signal?: AbortSignal
 ): Promise<Book[]> {
-  // Only process read books without genres that have ISBNs
+  // Only process read books without genres
   const booksNeedingGenres = books.filter(
-    b => b.exclusiveShelf === 'read' && 
-         b.genres.length === 0 && 
-         (b.isbn13 || b.isbn)
+    b => b.exclusiveShelf === 'read' && b.genres.length === 0
   );
   
   if (booksNeedingGenres.length === 0) {
@@ -145,8 +247,8 @@ export async function enrichBooksWithGenres(
   let enriched = 0;
   let processed = 0;
   
-  // Process in parallel batches of 25
-  const BATCH_SIZE = 25;
+  // Process in parallel batches of 10 (more conservative to avoid rate limits)
+  const BATCH_SIZE = 10;
   
   for (let i = 0; i < booksNeedingGenres.length; i += BATCH_SIZE) {
     if (signal?.aborted) break;
@@ -156,10 +258,7 @@ export async function enrichBooksWithGenres(
     // Process batch in parallel
     const results = await Promise.all(
       batch.map(async (book) => {
-        const isbn = book.isbn13 || book.isbn;
-        if (!isbn) return { book, genres: [] };
-        
-        const genres = await fetchGenresForBook(isbn);
+        const genres = await fetchGenresForBook(book);
         return { book, genres };
       })
     );
@@ -185,12 +284,11 @@ export async function enrichBooksWithGenres(
       booksEnriched: enriched,
     });
     
-    // Minimal delay between batches
+    // Delay between batches to avoid rate limiting
     if (i + BATCH_SIZE < booksNeedingGenres.length) {
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
   }
   
   return updatedBooks;
 }
-

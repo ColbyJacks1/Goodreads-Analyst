@@ -39,7 +39,7 @@ export default function StatsPage() {
     
     // Auto-start genre fetching in background if needed
     const booksNeedingGenres = storedBooks.filter(
-      b => b.exclusiveShelf === 'read' && b.genres.length === 0 && (b.isbn13 || b.isbn)
+      b => b.exclusiveShelf === 'read' && b.genres.length === 0
     );
     
     if (booksNeedingGenres.length > 0) {
@@ -102,9 +102,9 @@ export default function StatsPage() {
     }
   }, [books, enriching]);
   
-  // Count books needing genres
+  // Count books needing genres (no longer requires ISBN - we can search by title/author)
   const booksWithoutGenres = books.filter(
-    b => b.exclusiveShelf === 'read' && b.genres.length === 0 && (b.isbn13 || b.isbn)
+    b => b.exclusiveShelf === 'read' && b.genres.length === 0
   ).length;
   
   if (loading) {
