@@ -32,15 +32,17 @@ export function RatingChart({ data }: RatingChartProps) {
   }
   
   return (
-    <div className="h-[200px] w-full">
+    <div className="h-[180px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} layout="vertical">
+        <BarChart data={chartData} layout="vertical" barCategoryGap="20%">
           <XAxis type="number" hide />
           <YAxis 
             type="category" 
             dataKey="name" 
             width={50}
             tick={{ fontSize: 12 }}
+            tickLine={false}
+            axisLine={false}
           />
           <Tooltip 
             formatter={(value: number) => [`${value} books`, 'Count']}
@@ -50,7 +52,7 @@ export function RatingChart({ data }: RatingChartProps) {
               borderRadius: '8px',
             }}
           />
-          <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+          <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={28}>
             {chartData.map((entry, index) => (
               <Cell 
                 key={`cell-${index}`} 
