@@ -90,9 +90,12 @@ export function calculateStats(books: Book[]): BookStats {
   const booksWithPubYear = readBooks.filter(b => 
     b.originalPublicationYear && b.originalPublicationYear > 0 && b.originalPublicationYear < 3000
   );
-  const pubYears = booksWithPubYear.map(b => b.originalPublicationYear!);
-  const averagePubYear = pubYears.length > 0 
-    ? Math.round(pubYears.reduce((a, b) => a + b, 0) / pubYears.length)
+  const pubYears = booksWithPubYear.map(b => b.originalPublicationYear!).sort((a, b) => a - b);
+  // Calculate median (displayed as "average" but more robust to outliers)
+  const medianPubYear = pubYears.length > 0 
+    ? pubYears.length % 2 === 1
+      ? pubYears[Math.floor(pubYears.length / 2)]
+      : Math.round((pubYears[pubYears.length / 2 - 1] + pubYears[pubYears.length / 2]) / 2)
     : 0;
   
   const sortedByPubYear = [...booksWithPubYear].sort((a, b) => 
@@ -158,7 +161,7 @@ export function calculateStats(books: Book[]): BookStats {
     yearlyReading,
     monthlyReading,
     publicationEra: {
-      averageYear: averagePubYear,
+      averageYear: medianPubYear,
       oldestBook,
       newestBook,
       byDecade,
