@@ -164,13 +164,22 @@ export async function POST(request: NextRequest): Promise<NextResponse<AnalyzeRe
     
     const analysis: Record<string, unknown> = {};
     
-    // Run analysis based on type
-    if (analysisType === 'quick' || analysisType === 'all') {
-      const quickResponse = await generateAnalysis(model, 'quick', booksText);
-      const quickData = parseJSONResponse(quickResponse);
+    // Run analysis based on type - IN PARALLEL for speed
+    if (analysisType === 'all') {
+      // Run both quick and deep analysis in parallel
+      console.log('Starting parallel analysis...');
+      const startTime = Date.now();
       
+      const [quickResponse, deepResponse] = await Promise.all([
+        generateAnalysis(model, 'quick', booksText),
+        generateAnalysis(model, 'deep', booksText)
+      ]);
+      
+      console.log(`Both analyses completed in ${Date.now() - startTime}ms`);
+      
+      // Process quick analysis results
+      const quickData = parseJSONResponse(quickResponse);
       if (quickData) {
-        // Extract roast and recommendations from combined response
         if (quickData.roast) {
           analysis.roast = { raw: JSON.stringify(quickData.roast) };
         }
@@ -183,18 +192,13 @@ export async function POST(request: NextRequest): Promise<NextResponse<AnalyzeRe
           };
         }
       } else {
-        // Fallback: store raw response
         analysis.roast = { raw: quickResponse };
         analysis.recommendations = { raw: quickResponse };
       }
-    }
-    
-    if (analysisType === 'deep' || analysisType === 'all') {
-      const deepResponse = await generateAnalysis(model, 'deep', booksText);
-      const deepData = parseJSONResponse(deepResponse);
       
+      // Process deep analysis results
+      const deepData = parseJSONResponse(deepResponse);
       if (deepData) {
-        // Extract profile and insights from combined response
         if (deepData.profile) {
           analysis.profile = { raw: JSON.stringify(deepData.profile) };
         }
@@ -202,7 +206,41 @@ export async function POST(request: NextRequest): Promise<NextResponse<AnalyzeRe
           analysis.insights = { raw: JSON.stringify(deepData.insights) };
         }
       } else {
-        // Fallback: store raw response
+        analysis.profile = { raw: deepResponse };
+        analysis.insights = { raw: deepResponse };
+      }
+    } else if (analysisType === 'quick') {
+      const quickResponse = await generateAnalysis(model, 'quick', booksText);
+      const quickData = parseJSONResponse(quickResponse);
+      
+      if (quickData) {
+        if (quickData.roast) {
+          analysis.roast = { raw: JSON.stringify(quickData.roast) };
+        }
+        if (quickData.recommendations || quickData.genreExpansion) {
+          analysis.recommendations = { 
+            raw: JSON.stringify({
+              recommendations: quickData.recommendations,
+              genreExpansion: quickData.genreExpansion
+            })
+          };
+        }
+      } else {
+        analysis.roast = { raw: quickResponse };
+        analysis.recommendations = { raw: quickResponse };
+      }
+    } else if (analysisType === 'deep') {
+      const deepResponse = await generateAnalysis(model, 'deep', booksText);
+      const deepData = parseJSONResponse(deepResponse);
+      
+      if (deepData) {
+        if (deepData.profile) {
+          analysis.profile = { raw: JSON.stringify(deepData.profile) };
+        }
+        if (deepData.insights) {
+          analysis.insights = { raw: JSON.stringify(deepData.insights) };
+        }
+      } else {
         analysis.profile = { raw: deepResponse };
         analysis.insights = { raw: deepResponse };
       }
