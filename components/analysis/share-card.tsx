@@ -12,72 +12,89 @@ interface ShareCardProps {
   onClose: () => void;
 }
 
+function parseJsonFromRaw(raw: string) {
+  try {
+    let jsonStr = raw;
+    const jsonMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (jsonMatch) jsonStr = jsonMatch[1];
+    const objectMatch = jsonStr.match(/\{[\s\S]*\}/);
+    if (objectMatch) jsonStr = objectMatch[0];
+    return JSON.parse(jsonStr);
+  } catch {
+    return null;
+  }
+}
+
 function extractHighlights(analysis: FullAnalysis, books: Book[]) {
-  const roast = analysis.roast && 'raw' in analysis.roast ? analysis.roast : null;
-  const profile = analysis.profile && 'raw' in analysis.profile ? analysis.profile : null;
-  
   // Get reading stats
   const booksRead = books.filter(b => b.exclusiveShelf === 'read').length;
   const totalPages = books.reduce((sum, b) => sum + (b.pages || 0), 0);
   
-  // Get top genre from roast
-  const topGenre = roast?.readingHabits?.mostReadGenre || '';
+  // Parse roast data
+  let roastBullets: string[] = [];
+  let summary = '';
   
-  // Get MBTI from profile (parse from raw)
-  let mbti = '';
-  if (profile?.raw) {
-    const mbtiMatch = profile.raw.match(/MBTI[:\s]+([A-Z]{4})/i) || 
-                      profile.raw.match(/Myers-Briggs[:\s]+([A-Z]{4})/i) ||
-                      profile.raw.match(/\b([INTJ|INTP|ENTJ|ENTP|INFJ|INFP|ENFJ|ENFP|ISTJ|ISFJ|ESTJ|ESFJ|ISTP|ISFP|ESTP|ESFP]{4})\b/);
-    if (mbtiMatch) mbti = mbtiMatch[1];
+  if (analysis.roast && 'raw' in analysis.roast) {
+    const parsed = parseJsonFromRaw(analysis.roast.raw);
+    if (parsed) {
+      roastBullets = Array.isArray(parsed.roastBullets) ? parsed.roastBullets.slice(0, 2) : [];
+      summary = parsed.readerSummary || '';
+    }
   }
   
-  // Get best roast bullets (pick 2)
-  const roastBullets = roast?.roastBullets?.slice(0, 2) || [];
+  // Parse insights for literary portrait and reader archetype
+  let literaryPortrait = '';
+  let readerArchetype = '';
   
-  // Reader summary
-  const summary = roast?.readerSummary || '';
+  if (analysis.insights && 'raw' in analysis.insights) {
+    const parsed = parseJsonFromRaw(analysis.insights.raw);
+    if (parsed) {
+      literaryPortrait = parsed.literaryPortrait || '';
+      readerArchetype = parsed.readerArchetype || '';
+    }
+  }
   
   return {
     booksRead,
     totalPages,
-    topGenre,
-    mbti,
     roastBullets,
     summary,
+    literaryPortrait,
+    readerArchetype,
   };
 }
 
 function generateShareText(highlights: ReturnType<typeof extractHighlights>): string {
   let text = `📚 My Reading Personality\n\n`;
   
-  if (highlights.summary) {
-    text += `${highlights.summary}\n\n`;
-  }
-  
   text += `📖 ${highlights.booksRead} books read`;
   if (highlights.totalPages > 0) {
-    text += ` · ${highlights.totalPages.toLocaleString()} pages\n`;
+    text += ` · ${highlights.totalPages.toLocaleString()} pages\n\n`;
   } else {
-    text += `\n`;
+    text += `\n\n`;
   }
   
-  if (highlights.topGenre) {
-    text += `🎯 Top genre: ${highlights.topGenre}\n`;
+  if (highlights.summary) {
+    text += `✨ Reader Summary:\n${highlights.summary}\n\n`;
   }
   
-  if (highlights.mbti) {
-    text += `🧠 Reading personality: ${highlights.mbti}\n`;
+  if (highlights.literaryPortrait) {
+    text += `📖 Literary Portrait:\n${highlights.literaryPortrait}\n\n`;
+  }
+  
+  if (highlights.readerArchetype) {
+    text += `🎭 Reader Archetype:\n${highlights.readerArchetype}\n\n`;
   }
   
   if (highlights.roastBullets.length > 0) {
-    text += `\n🔥 The roast:\n`;
-    highlights.roastBullets.forEach(bullet => {
+    text += `🔥 The Roast:\n`;
+    highlights.roastBullets.forEach((bullet: string) => {
       text += `• ${bullet}\n`;
     });
+    text += `\n`;
   }
   
-  text += `\n— via goodreads-analyst.vercel.app`;
+  text += `— via goodreads-analyst.vercel.app`;
   
   return text;
 }
@@ -162,11 +179,6 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
               <span className="font-bold text-sm">Goodreads Analyzer</span>
             </div>
             
-            {/* Summary */}
-            {highlights.summary && (
-              <p className="text-sm mb-4 leading-relaxed">{highlights.summary}</p>
-            )}
-            
             {/* Stats Row */}
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="bg-background/60 rounded-lg p-3 text-center">
@@ -181,19 +193,29 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
               )}
             </div>
             
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {highlights.topGenre && (
-                <span className="px-2.5 py-1 bg-background/80 rounded-full text-xs font-medium">
-                  🎯 {highlights.topGenre}
-                </span>
-              )}
-              {highlights.mbti && (
-                <span className="px-2.5 py-1 bg-background/80 rounded-full text-xs font-medium">
-                  🧠 {highlights.mbti}
-                </span>
-              )}
-            </div>
+            {/* Reader Summary */}
+            {highlights.summary && (
+              <div className="mb-3">
+                <p className="text-xs font-semibold text-primary mb-1">✨ Reader Summary</p>
+                <p className="text-sm leading-relaxed">{highlights.summary}</p>
+              </div>
+            )}
+            
+            {/* Literary Portrait */}
+            {highlights.literaryPortrait && (
+              <div className="mb-3">
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1">📖 Literary Portrait</p>
+                <p className="text-xs text-foreground/80 leading-relaxed line-clamp-3">{highlights.literaryPortrait}</p>
+              </div>
+            )}
+            
+            {/* Reader Archetype */}
+            {highlights.readerArchetype && (
+              <div className="mb-3">
+                <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">🎭 Reader Archetype</p>
+                <p className="text-xs text-foreground/80 leading-relaxed line-clamp-2">{highlights.readerArchetype}</p>
+              </div>
+            )}
             
             {/* Roast Highlights */}
             {highlights.roastBullets.length > 0 && (
@@ -202,7 +224,7 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
                   <Flame className="w-3.5 h-3.5" />
                   The Roast
                 </div>
-                {highlights.roastBullets.map((bullet, i) => (
+                {highlights.roastBullets.map((bullet: string, i: number) => (
                   <p key={i} className="text-xs text-foreground/80 pl-1 border-l-2 border-orange-400/50">
                     {bullet}
                   </p>
