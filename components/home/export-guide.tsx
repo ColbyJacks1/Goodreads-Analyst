@@ -81,11 +81,11 @@ export function ExportGuide({ variant = 'inline', onClose }: ExportGuideProps) {
 
 function ExportSteps({ steps }: { steps: { number: number; title: string; description: string; link?: string }[] }) {
   const mobileStepsIOS = [
-    { number: 1, title: 'Sign in via Safari', description: 'Open Safari, go to goodreads.com and sign in' },
+    { number: 1, title: 'Open Goodreads in Safari', description: 'Go to goodreads.com and sign in (use Safari, not the app)' },
     { number: 2, title: 'Go to Export Page', description: 'Navigate to My Books → Import and Export', link: 'https://www.goodreads.com/review/import' },
     { number: 3, title: 'Tap "Export Library"', description: 'Wait for export to complete, then tap the download link' },
-    { number: 4, title: 'Copy the Link', description: 'In the popup, tap Share (↑) then Copy' },
-    { number: 5, title: 'Paste in New Tab', description: 'Open a new Safari tab, paste the URL — tap Download when prompted' },
+    { number: 4, title: 'Copy the Link', description: 'In the lirbrary_export file, tap Share (↑) then Copy' },
+    { number: 5, title: 'Paste in New Tab', description: 'Open a new Safari tab, paste the URL — tap Download when prompted and save the file to your device' },
     { number: 6, title: 'Upload Here', description: 'Return to this site, tap "Browse" and select your CSV' },
   ];
 

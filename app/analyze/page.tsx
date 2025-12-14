@@ -14,6 +14,7 @@ import { RoastCard } from '@/components/analysis/roast-card';
 import { RecommendationList } from '@/components/analysis/recommendation-card';
 import { ProfileCard } from '@/components/analysis/profile-card';
 import { InsightCard } from '@/components/analysis/insight-card';
+import { ShareButton } from '@/components/analysis/share-card';
 
 export default function AnalyzePage() {
   const router = useRouter();
@@ -129,13 +130,20 @@ export default function AnalyzePage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-          <Sparkles className="w-8 h-8 text-primary" />
-          AI Analysis
-        </h1>
-        <p className="text-muted-foreground">
-          Deep insights into your reading personality based on {books.length} books
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+              <Sparkles className="w-8 h-8 text-primary" />
+              AI Analysis
+            </h1>
+            <p className="text-muted-foreground">
+              Deep insights into your reading personality based on {books.length} books
+            </p>
+          </div>
+          {analysis && (
+            <ShareButton analysis={analysis} books={books} />
+          )}
+        </div>
       </div>
       
       {/* Error State */}
