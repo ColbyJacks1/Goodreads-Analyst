@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { Share2, Copy, Check, X, BookOpen, Flame } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { Share2, Copy, Check, X, BookOpen, Flame, Download, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FullAnalysis, Book } from '@/lib/types';
+import html2canvas from 'html2canvas';
 
 interface ShareCardProps {
   analysis: FullAnalysis;
@@ -127,7 +128,8 @@ export function ShareButton({ analysis, books }: { analysis: FullAnalysis; books
 
 function ShareModal({ analysis, books, onClose }: ShareCardProps) {
   const [copied, setCopied] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
+  const [saving, setSaving] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
   const highlights = extractHighlights(analysis, books);
   const shareText = generateShareText(highlights);
   
@@ -141,27 +143,64 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
     }
   };
   
-  const handleNativeShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'My Reading Personality',
-          text: shareText,
-        });
-      } catch (err) {
-        // User cancelled or share failed
-        if ((err as Error).name !== 'AbortError') {
-          console.error('Share failed:', err);
+  const captureImage = useCallback(async (): Promise<Blob | null> => {
+    if (!previewRef.current) return null;
+    
+    try {
+      const canvas = await html2canvas(previewRef.current, {
+        scale: 2, // Higher resolution
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        logging: false,
+      });
+      
+      return new Promise((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+      });
+    } catch (err) {
+      console.error('Failed to capture image:', err);
+      return null;
+    }
+  }, []);
+  
+  const handleSaveImage = useCallback(async () => {
+    setSaving(true);
+    try {
+      const blob = await captureImage();
+      if (!blob) throw new Error('Failed to capture');
+      
+      // Try native share with file (works on mobile)
+      if (navigator.share && navigator.canShare) {
+        const file = new File([blob], 'my-reading-personality.png', { type: 'image/png' });
+        const shareData = { files: [file] };
+        
+        if (navigator.canShare(shareData)) {
+          await navigator.share(shareData);
+          setSaving(false);
+          return;
         }
       }
-    } else {
-      handleCopy();
+      
+      // Fallback: download the image
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'my-reading-personality.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      if ((err as Error).name !== 'AbortError') {
+        console.error('Save failed:', err);
+      }
     }
-  };
+    setSaving(false);
+  }, [captureImage]);
   
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <Card className="w-full max-w-md max-h-[90vh] overflow-auto" ref={cardRef}>
+      <Card className="w-full max-w-md max-h-[90vh] overflow-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-bold text-lg">Share Your Results</h3>
@@ -170,9 +209,9 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
           </button>
         </div>
         
-        {/* Preview Card */}
+        {/* Preview Card - This gets captured as image */}
         <div className="p-4">
-          <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-5 border border-primary/20">
+          <div ref={previewRef} className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 rounded-xl p-5 border border-primary/20">
             {/* Branding */}
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-primary/10">
               <BookOpen className="w-5 h-5 text-primary" />
@@ -235,26 +274,27 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
         </div>
         
         {/* Actions */}
-        <div className="p-4 pt-0 flex gap-2">
-          {'share' in navigator ? (
-            <Button onClick={handleNativeShare} className="flex-1 gap-2">
-              <Share2 className="w-4 h-4" />
-              Share
-            </Button>
-          ) : (
-            <Button onClick={handleCopy} className="flex-1 gap-2">
-              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              {copied ? 'Copied!' : 'Copy to Clipboard'}
-            </Button>
-          )}
+        <div className="p-4 pt-0 space-y-2">
+          {/* Primary: Save/Share as Image */}
+          <Button onClick={handleSaveImage} className="w-full gap-2" disabled={saving}>
+            {saving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Image className="w-4 h-4" />
+                Share as Image
+              </>
+            )}
+          </Button>
           
-          {/* Always show copy as secondary option on mobile */}
-          {'share' in navigator && (
-            <Button variant="outline" onClick={handleCopy} className="gap-2">
-              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              {copied ? 'Copied' : 'Copy'}
-            </Button>
-          )}
+          {/* Secondary: Copy text */}
+          <Button variant="outline" onClick={handleCopy} className="w-full gap-2">
+            {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            {copied ? 'Text Copied!' : 'Copy as Text'}
+          </Button>
         </div>
       </Card>
     </div>
