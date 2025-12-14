@@ -81,12 +81,12 @@ export function ExportGuide({ variant = 'inline', onClose }: ExportGuideProps) {
 
 function ExportSteps({ steps }: { steps: { number: number; title: string; description: string; link?: string }[] }) {
   const mobileStepsIOS = [
-    { number: 1, title: 'Open Goodreads in Safari', description: 'Go to goodreads.com and sign in (use Safari, not the app)' },
+    { number: 1, title: 'Sign in via Safari', description: 'Open Safari, go to goodreads.com and sign in' },
     { number: 2, title: 'Go to Export Page', description: 'Navigate to My Books → Import and Export', link: 'https://www.goodreads.com/review/import' },
-    { number: 3, title: 'Click "Export Library"', description: 'Tap the export button and wait for it to complete' },
-    { number: 4, title: 'Save the File', description: 'When the download appears, tap the Share icon (square with arrow)' },
-    { number: 5, title: 'Choose "Save to Files"', description: 'Select a location like iCloud Drive or On My iPhone' },
-    { number: 6, title: 'Upload Here', description: 'Return to this site, tap "Browse" and select your saved CSV' },
+    { number: 3, title: 'Tap "Export Library"', description: 'Wait for export to complete, then tap the download link' },
+    { number: 4, title: 'Copy the Link', description: 'In the popup, tap Share (↑) then Copy' },
+    { number: 5, title: 'Paste in New Tab', description: 'Open a new Safari tab, paste the URL — tap Download when prompted' },
+    { number: 6, title: 'Upload Here', description: 'Return to this site, tap "Browse" and select your CSV' },
   ];
 
   const mobileStepsAndroid = [
@@ -123,7 +123,7 @@ function ExportSteps({ steps }: { steps: { number: number; title: string; descri
         <TabsContent value="ios">
           <div className="mb-3 p-2 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
             <p className="text-xs text-amber-800 dark:text-amber-200">
-              Tip: Use Safari browser, not the Goodreads app
+              <strong>Important:</strong> Use Safari (not the app) and stay logged in throughout
             </p>
           </div>
           <StepList steps={mobileStepsIOS} />
