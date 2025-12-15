@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileDropzone } from '@/components/upload/file-dropzone';
 import { ImportProgressDisplay } from '@/components/upload/import-progress';
 import { ExportGuideButton, ExportGuideTooltip } from '@/components/home/export-guide';
-import { QuickRecommendCompact } from '@/components/home/quick-recommend';
 import { EXAMPLE_PREVIEWS } from '@/lib/demo-data';
 import { parseGoodreadsCsv } from '@/lib/csv-parser';
 import { saveBooks, getBookCount, clearBooks, clearAnalysis, loadDemoData, isDemoMode, clearDemoData } from '@/lib/storage';
@@ -257,22 +256,6 @@ export default function HomePage() {
                     <ExportGuideButton />
                   </div>
                   
-                  {/* Mobile hint */}
-                  <p className="text-center text-xs text-muted-foreground">
-                    Works best on desktop. On mobile? Try the{' '}
-                    <button 
-                      onClick={handleTryDemo} 
-                      className="text-primary hover:underline"
-                    >
-                      demo
-                    </button>
-                    {' '}or{' '}
-                    <a href="#quick-rec" className="text-primary hover:underline">
-                      quick recommendations
-                    </a>
-                    {' '}below.
-                  </p>
-                  
                   {/* Demo option */}
                   <div className="flex items-center gap-4">
                     <div className="flex-1 h-px bg-border" />
@@ -304,13 +287,6 @@ export default function HomePage() {
         {/* Below-fold content when no books uploaded */}
         {existingBookCount === 0 && progress.stage === 'idle' && (
           <>
-            {/* Quick Recommendation */}
-            <Card id="quick-rec" className="mt-12 border-dashed scroll-mt-8">
-              <CardContent className="p-6">
-                <QuickRecommendCompact />
-              </CardContent>
-            </Card>
-            
             {/* Example Previews */}
             <div className="mt-12">
               <h2 className="text-xl font-bold text-center mb-6">
