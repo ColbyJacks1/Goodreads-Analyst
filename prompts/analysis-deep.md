@@ -7,6 +7,8 @@ Analyze the user's reading data to:
 2. Infer their Myers-Briggs type and Big Five personality traits based on reading patterns
 3. Provide deep psychological insights about their literary identity and inner life
 
+IMPORTANT: Address the user directly as "you" throughout your response. Do not use "the reader", "this reader", or "they/them/their" - speak directly to them.
+
 Be thoughtful, evidence-based, and reference specific books from their data.
 
 USER'S BOOKS:
@@ -19,30 +21,30 @@ RESPONSE FORMAT (JSON):
 {
   "profile": {
     "demographics": {
-      "ageLifeStage": "Your inference about their age and life stage with brief reasoning",
-      "educationLevel": "Your inference about education with brief reasoning",
-      "professionalField": "Your inference about career/profession with brief reasoning",
-      "geographicLocation": "Your inference about location/culture with brief reasoning",
-      "familyStatus": "Your inference about family situation with brief reasoning"
+      "ageLifeStage": "You appear to be... (age and life stage inference with brief reasoning)",
+      "educationLevel": "Your education level suggests... (inference with brief reasoning)",
+      "professionalField": "You likely work in... (career/profession inference with brief reasoning)",
+      "geographicLocation": "You seem to be from... (location/culture inference with brief reasoning)",
+      "familyStatus": "Your family situation appears to be... (inference with brief reasoning)"
     },
     "mindset": {
-      "politicsValues": "Your inference about political orientation and values",
-      "riskTolerance": "Your inference about risk tolerance",
-      "learningStyle": "Your inference about how they learn",
-      "informationDiet": "Your inference about media consumption",
-      "lifeArc": "Your inference about their life trajectory"
+      "politicsValues": "Your values and orientation suggest...",
+      "riskTolerance": "Your approach to risk appears to be...",
+      "learningStyle": "You seem to learn by...",
+      "informationDiet": "Your media consumption suggests...",
+      "lifeArc": "Your life trajectory appears to be..."
     },
     "personality": {
       "myersBriggs": {
         "type": "INTJ (or other 4-letter type)",
-        "reasoning": "2-3 sentences explaining why this type fits based on their reading patterns"
+        "reasoning": "2-3 sentences explaining why this type fits you based on your reading patterns"
       },
       "bigFive": {
-        "openness": "High/Medium/Low - brief explanation based on reading diversity and book content",
-        "conscientiousness": "High/Medium/Low - brief explanation based on reading habits, book completion, and book content",
-        "extraversion": "High/Medium/Low - brief explanation based on genre preferences and book content (e.g., introspective vs social themes)",
-        "agreeableness": "High/Medium/Low - brief explanation based on book themes and values",
-        "neuroticism": "High/Medium/Low - brief explanation based on sum of book content"
+        "openness": "High/Medium/Low - brief explanation based on your reading diversity and book content",
+        "conscientiousness": "High/Medium/Low - brief explanation based on your reading habits and book completion",
+        "extraversion": "High/Medium/Low - brief explanation based on your genre preferences (e.g., introspective vs social themes)",
+        "agreeableness": "High/Medium/Low - brief explanation based on book themes and values you gravitate toward",
+        "neuroticism": "High/Medium/Low - brief explanation based on your book content choices"
       }
     },
     "detailedAnalysis": [
@@ -79,13 +81,13 @@ RESPONSE FORMAT (JSON):
     ]
   },
   "insights": {
-    "literaryPortrait": "2-3 sentences about their reading identity - what kind of reader are they at their core?",
-    "dominantThemes": "2-3 sentences about recurring themes - what topics keep drawing them back?",
-    "readingJourney": "2-3 sentences about their reading evolution over time",
-    "readerArchetype": "2-3 sentences about their reader personality archetype (escapist, knowledge-seeker, explorer, etc.)",
-    "intellectualProfile": "2-3 sentences about cognitive reading preferences",
-    "hiddenPatterns": "2-3 sentences about surprising patterns that reveal something interesting",
-    "growthAreas": "2-3 sentences about genres/authors that could expand their horizons"
+    "literaryPortrait": "2-3 sentences about your reading identity - what kind of reader are you at your core?",
+    "dominantThemes": "2-3 sentences about recurring themes - what topics keep drawing you back?",
+    "readingJourney": "2-3 sentences about your reading evolution over time",
+    "readerArchetype": "2-3 sentences about your reader personality archetype (escapist, knowledge-seeker, explorer, etc.)",
+    "intellectualProfile": "2-3 sentences about your cognitive reading preferences",
+    "hiddenPatterns": "2-3 sentences about surprising patterns that reveal something interesting about you",
+    "growthAreas": "2-3 sentences about genres/authors that could expand your horizons"
   }
 }
 ```

@@ -44,4 +44,7 @@ GUIDELINES:
 - Limit keyThemes to 3-4 maximum themes that truly stand out
 - If the reader only read a few books, acknowledge this and still find meaning in the choices
 - CRITICAL: Output valid JSON only, no markdown formatting
+- Do NOT use asterisks, underscores, or any markdown syntax for book titles - use plain text only
+- Book titles should appear as plain text (e.g., "The Overstory" not "*The Overstory*")
+- Address the reader directly as "you" instead of "the reader" or "this reader"
 

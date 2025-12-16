@@ -11,6 +11,8 @@ import { RecommendationResults } from '@/components/recommendations/recommendati
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
+const COOLDOWN_SECONDS = 30;
+
 export default function RecommendationsPage() {
   const router = useRouter();
   const [books, setBooks] = useState<Book[]>([]);
@@ -19,6 +21,10 @@ export default function RecommendationsPage() {
   const [recommendations, setRecommendations] = useState<BookRecommendation[]>([]);
   const [currentPrompt, setCurrentPrompt] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
+  
+  // Rate limiting state
+  const [lastRequestTime, setLastRequestTime] = useState<number>(0);
+  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
   
   useEffect(() => {
     const storedBooks = getBooks();
@@ -34,6 +40,14 @@ export default function RecommendationsPage() {
   const handlePromptSubmit = useCallback(async (prompt: string) => {
     if (books.length === 0) return;
     
+    // Check cooldown
+    const now = Date.now();
+    const timeSinceLastRun = (now - lastRequestTime) / 1000;
+    if (lastRequestTime > 0 && timeSinceLastRun < COOLDOWN_SECONDS) {
+      return; // Still in cooldown
+    }
+    
+    setLastRequestTime(now);
     setGenerating(true);
     setError(null);
     setCurrentPrompt(prompt);
@@ -59,7 +73,22 @@ export default function RecommendationsPage() {
     } finally {
       setGenerating(false);
     }
-  }, [books]);
+  }, [books, lastRequestTime]);
+  
+  // Cooldown timer effect
+  useEffect(() => {
+    if (lastRequestTime === 0) return;
+    
+    const updateCooldown = () => {
+      const remaining = Math.max(0, COOLDOWN_SECONDS - (Date.now() - lastRequestTime) / 1000);
+      setCooldownRemaining(Math.ceil(remaining));
+    };
+    
+    updateCooldown();
+    const interval = setInterval(updateCooldown, 1000);
+    
+    return () => clearInterval(interval);
+  }, [lastRequestTime]);
   
   if (loading) {
     return (
@@ -93,7 +122,11 @@ export default function RecommendationsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <PromptInput onSubmit={handlePromptSubmit} disabled={generating} />
+          <PromptInput 
+            onSubmit={handlePromptSubmit} 
+            disabled={generating} 
+            cooldownRemaining={cooldownRemaining}
+          />
         </CardContent>
       </Card>
       

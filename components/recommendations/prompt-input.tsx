@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 interface PromptInputProps {
   onSubmit: (prompt: string) => void;
   disabled?: boolean;
+  cooldownRemaining?: number;
 }
 
 const QUICK_PROMPTS = [
@@ -22,18 +23,19 @@ const QUICK_PROMPTS = [
   'Something funny',
 ];
 
-export function PromptInput({ onSubmit, disabled = false }: PromptInputProps) {
+export function PromptInput({ onSubmit, disabled = false, cooldownRemaining = 0 }: PromptInputProps) {
+  const isDisabled = disabled || cooldownRemaining > 0;
   const [prompt, setPrompt] = useState('');
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (prompt.trim() && !disabled) {
+    if (prompt.trim() && !isDisabled) {
       onSubmit(prompt.trim());
     }
   };
   
   const handleQuickPrompt = (quickPrompt: string) => {
-    if (!disabled) {
+    if (!isDisabled) {
       setPrompt(quickPrompt);
       onSubmit(quickPrompt);
     }
@@ -49,7 +51,7 @@ export function PromptInput({ onSubmit, disabled = false }: PromptInputProps) {
             variant="outline"
             className={cn(
               'cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors px-3 py-1.5',
-              disabled && 'opacity-50 cursor-not-allowed'
+              isDisabled && 'opacity-50 cursor-not-allowed'
             )}
             onClick={() => handleQuickPrompt(quickPrompt)}
           >
@@ -69,18 +71,18 @@ export function PromptInput({ onSubmit, disabled = false }: PromptInputProps) {
               'w-full px-4 py-3 rounded-lg border bg-background resize-none',
               'focus:outline-none focus:ring-2 focus:ring-primary/50',
               'placeholder:text-muted-foreground',
-              disabled && 'opacity-50 cursor-not-allowed'
+              isDisabled && 'opacity-50 cursor-not-allowed'
             )}
             rows={2}
-            disabled={disabled}
+            disabled={isDisabled}
           />
         </div>
         <Button 
           type="submit" 
-          disabled={!prompt.trim() || disabled}
+          disabled={!prompt.trim() || isDisabled}
           className="h-auto"
         >
-          <Send className="w-4 h-4" />
+          {cooldownRemaining > 0 ? `${cooldownRemaining}s` : <Send className="w-4 h-4" />}
         </Button>
       </form>
     </div>

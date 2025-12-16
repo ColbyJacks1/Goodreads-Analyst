@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, Flame, User, Lightbulb, BookOpen, Loader2, RefreshCw } from 'lucide-react';
 import { getBooks, getAnalysis, saveAnalysis } from '@/lib/storage';
-import { getAnalysisStatus, startBackgroundAnalysis, waitForAnalysis } from '@/lib/background-analysis';
+import { getAnalysisStatus, waitForAnalysis } from '@/lib/background-analysis';
 import { track } from '@vercel/analytics';
 import { Book, FullAnalysis } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -16,6 +16,8 @@ import { ProfileCard } from '@/components/analysis/profile-card';
 import { InsightCard } from '@/components/analysis/insight-card';
 import { ShareButton } from '@/components/analysis/share-card';
 
+const COOLDOWN_SECONDS = 30;
+
 export default function AnalyzePage() {
   const router = useRouter();
   const [books, setBooks] = useState<Book[]>([]);
@@ -24,6 +26,11 @@ export default function AnalyzePage() {
   const [analysis, setAnalysis] = useState<FullAnalysis | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('roast');
+  
+  // Rate limiting state
+  const [lastAnalysisTime, setLastAnalysisTime] = useState<number>(0);
+  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
+  const hasRunInitialCheck = useRef(false);
   
   // Load books and check for cached analysis
   useEffect(() => {
@@ -69,9 +76,19 @@ export default function AnalyzePage() {
     setLoading(false);
   }, [router]);
   
-  // Run analysis (only if not already cached)
-  const runAnalysis = useCallback(async () => {
+  // Run analysis with rate limiting
+  const runAnalysis = useCallback(async (bypassCooldown = false) => {
     if (books.length === 0) return;
+    
+    // Check cooldown (unless bypassed for initial load)
+    if (!bypassCooldown) {
+      const now = Date.now();
+      const timeSinceLastRun = (now - lastAnalysisTime) / 1000;
+      if (lastAnalysisTime > 0 && timeSinceLastRun < COOLDOWN_SECONDS) {
+        return; // Still in cooldown
+      }
+      setLastAnalysisTime(now);
+    }
     
     setAnalyzing(true);
     setError(null);
@@ -98,18 +115,22 @@ export default function AnalyzePage() {
     } finally {
       setAnalyzing(false);
     }
-  }, [books]);
+  }, [books, lastAnalysisTime]);
   
-  // Auto-start analysis if needed
+  // Cooldown timer effect
   useEffect(() => {
-    if (!loading && books.length > 0 && !analysis && !analyzing && !error) {
-      // No cached analysis and not already running, start it
-      const status = getAnalysisStatus();
-      if (status.status !== 'running') {
-        runAnalysis();
-      }
-    }
-  }, [loading, books, analysis, analyzing, error, runAnalysis]);
+    if (lastAnalysisTime === 0) return;
+    
+    const updateCooldown = () => {
+      const remaining = Math.max(0, COOLDOWN_SECONDS - (Date.now() - lastAnalysisTime) / 1000);
+      setCooldownRemaining(Math.ceil(remaining));
+    };
+    
+    updateCooldown();
+    const interval = setInterval(updateCooldown, 1000);
+    
+    return () => clearInterval(interval);
+  }, [lastAnalysisTime]);
   
   if (loading) {
     return (
@@ -172,10 +193,6 @@ export default function AnalyzePage() {
             <Flame className="w-4 h-4" />
             <span className="hidden sm:inline">Roast</span>
           </TabsTrigger>
-          <TabsTrigger value="recommendations" className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4" />
-            <span className="hidden sm:inline">Recs</span>
-          </TabsTrigger>
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="w-4 h-4" />
             <span className="hidden sm:inline">Profile</span>
@@ -183,6 +200,10 @@ export default function AnalyzePage() {
           <TabsTrigger value="insights" className="flex items-center gap-2">
             <Lightbulb className="w-4 h-4" />
             <span className="hidden sm:inline">Insights</span>
+          </TabsTrigger>
+          <TabsTrigger value="recommendations" className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            <span className="hidden sm:inline">Recs</span>
           </TabsTrigger>
         </TabsList>
         
@@ -206,23 +227,7 @@ export default function AnalyzePage() {
               <p className="text-muted-foreground">
                 Click the button below to generate your literary roast
               </p>
-              <Button className="mt-4" onClick={runAnalysis}>
-                Generate Analysis
-              </Button>
-            </div>
-          )}
-        </TabsContent>
-        
-        {/* Recommendations Tab */}
-        <TabsContent value="recommendations">
-          {!analyzing && analysis?.recommendations && 'raw' in analysis.recommendations ? (
-            <RecommendationList content={(analysis.recommendations as { raw: string }).raw} />
-          ) : !analyzing && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">
-                Recommendations will appear after analysis
-              </p>
-              <Button className="mt-4" onClick={runAnalysis}>
+              <Button className="mt-4" onClick={() => runAnalysis(true)}>
                 Generate Analysis
               </Button>
             </div>
@@ -238,7 +243,7 @@ export default function AnalyzePage() {
               <p className="text-muted-foreground">
                 Click the button below to generate your reader profile
               </p>
-              <Button className="mt-4" onClick={runAnalysis}>
+              <Button className="mt-4" onClick={() => runAnalysis(true)}>
                 Generate Analysis
               </Button>
             </div>
@@ -254,7 +259,23 @@ export default function AnalyzePage() {
               <p className="text-muted-foreground">
                 Click the button below to discover literary insights
               </p>
-              <Button className="mt-4" onClick={runAnalysis}>
+              <Button className="mt-4" onClick={() => runAnalysis(true)}>
+                Generate Analysis
+              </Button>
+            </div>
+          )}
+        </TabsContent>
+        
+        {/* Recommendations Tab */}
+        <TabsContent value="recommendations">
+          {!analyzing && analysis?.recommendations && 'raw' in analysis.recommendations ? (
+            <RecommendationList content={(analysis.recommendations as { raw: string }).raw} />
+          ) : !analyzing && (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">
+                Recommendations will appear after analysis
+              </p>
+              <Button className="mt-4" onClick={() => runAnalysis(true)}>
                 Generate Analysis
               </Button>
             </div>
@@ -265,9 +286,15 @@ export default function AnalyzePage() {
       {/* Regenerate Button */}
       {hasAllSections && !analyzing && (
         <div className="mt-8 text-center">
-          <Button variant="outline" onClick={runAnalysis}>
+          <Button 
+            variant="outline" 
+            onClick={() => runAnalysis()}
+            disabled={cooldownRemaining > 0}
+          >
             <RefreshCw className="w-4 h-4 mr-2" />
-            Regenerate Analysis
+            {cooldownRemaining > 0 
+              ? `Wait ${cooldownRemaining}s` 
+              : 'Regenerate Analysis'}
           </Button>
         </div>
       )}

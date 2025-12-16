@@ -108,11 +108,11 @@ export function calculateStats(books: Book[]): BookStats {
     ? { title: sortedByPubYear[sortedByPubYear.length - 1].title, author: sortedByPubYear[sortedByPubYear.length - 1].author, year: sortedByPubYear[sortedByPubYear.length - 1].originalPublicationYear! }
     : null;
   
-  // Group by decade
+  // Group by decade, consolidating pre-1980 into one bucket
   const decadeCounts: Record<string, number> = {};
   for (const book of booksWithPubYear) {
-    const decade = Math.floor(book.originalPublicationYear! / 10) * 10;
-    const decadeLabel = `${decade}s`;
+    const year = book.originalPublicationYear!;
+    const decadeLabel = year < 1980 ? '≤1970s' : `${Math.floor(year / 10) * 10}s`;
     decadeCounts[decadeLabel] = (decadeCounts[decadeLabel] || 0) + 1;
   }
   const byDecade = Object.entries(decadeCounts)

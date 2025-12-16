@@ -21,7 +21,7 @@ interface AnalyzeRequestBody {
  * Filter and format books for LLM context (optimized for token efficiency)
  * - Includes "read" books and "to-read" books (marked separately)
  * - Strips unnecessary fields
- * - Truncates reviews to 500 chars
+ * - Truncates reviews to 1000 chars
  */
 function formatBooksForPrompt(books: Book[]): string {
   // Separate read and to-read books
@@ -56,10 +56,10 @@ function formatBooksForPrompt(books: Book[]): string {
       line += ` | ${topGenres}`;
     }
     
-    // Include truncated review (up to 500 chars) if it exists and is meaningful
+    // Include truncated review (up to 1000 chars) if it exists and is meaningful
     if (book.myReview && book.myReview.length > 10) {
-      const truncatedReview = book.myReview.substring(0, 500).replace(/\n/g, ' ').trim();
-      const ellipsis = book.myReview.length > 500 ? '...' : '';
+      const truncatedReview = book.myReview.substring(0, 1000).replace(/\n/g, ' ').trim();
+      const ellipsis = book.myReview.length > 1000 ? '...' : '';
       line += ` | "${truncatedReview}${ellipsis}"`;
     }
     

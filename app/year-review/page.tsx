@@ -9,8 +9,11 @@ import { track } from '@vercel/analytics';
 import { Book, YearStats } from '@/lib/types';
 import { YearSelector } from '@/components/year-review/year-selector';
 import { YearStatsDisplay } from '@/components/year-review/year-stats';
+import { YearShareButton } from '@/components/year-review/year-share';
 import { Skeleton } from '@/components/ui/skeleton';
 import { YearSummaryData } from '@/app/api/year-summary/route';
+
+const COOLDOWN_SECONDS = 30;
 
 export default function YearReviewPage() {
   const router = useRouter();
@@ -22,6 +25,10 @@ export default function YearReviewPage() {
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Rate limiting state
+  const [lastSummaryTime, setLastSummaryTime] = useState<number>(0);
+  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
   
   useEffect(() => {
     const storedBooks = getBooks();
@@ -54,9 +61,19 @@ export default function YearReviewPage() {
     }
   }, [selectedYear, books]);
   
-  // Fetch AI summary for the year
+  // Fetch AI summary for the year with rate limiting
   const fetchYearSummary = useCallback(async () => {
     if (!selectedYear || books.length === 0) return;
+    
+    // Check cooldown (only applies if we already have a summary for this year)
+    if (yearSummary) {
+      const now = Date.now();
+      const timeSinceLastRun = (now - lastSummaryTime) / 1000;
+      if (lastSummaryTime > 0 && timeSinceLastRun < COOLDOWN_SECONDS) {
+        return; // Still in cooldown
+      }
+      setLastSummaryTime(now);
+    }
     
     // Get books for this year
     const yearBooks = books.filter(book => {
@@ -80,6 +97,7 @@ export default function YearReviewPage() {
       
       if (data.success && data.summary) {
         setYearSummary(data.summary);
+        setLastSummaryTime(Date.now());
         track('year_summary_generated', { year: selectedYear, bookCount: yearBooks.length });
       } else {
         setSummaryError(data.error || 'Failed to generate summary');
@@ -89,7 +107,22 @@ export default function YearReviewPage() {
     } finally {
       setSummaryLoading(false);
     }
-  }, [selectedYear, books]);
+  }, [selectedYear, books, yearSummary, lastSummaryTime]);
+  
+  // Cooldown timer effect
+  useEffect(() => {
+    if (lastSummaryTime === 0) return;
+    
+    const updateCooldown = () => {
+      const remaining = Math.max(0, COOLDOWN_SECONDS - (Date.now() - lastSummaryTime) / 1000);
+      setCooldownRemaining(Math.ceil(remaining));
+    };
+    
+    updateCooldown();
+    const interval = setInterval(updateCooldown, 1000);
+    
+    return () => clearInterval(interval);
+  }, [lastSummaryTime]);
   
   if (loading) {
     return (
@@ -133,13 +166,18 @@ export default function YearReviewPage() {
           </p>
         </div>
         
-        {selectedYear && (
-          <YearSelector
-            years={years}
-            selectedYear={selectedYear}
-            onYearChange={setSelectedYear}
-          />
-        )}
+        <div className="flex items-center gap-3">
+          {yearStats && yearStats.booksRead > 0 && (
+            <YearShareButton stats={yearStats} summary={yearSummary} />
+          )}
+          {selectedYear && (
+            <YearSelector
+              years={years}
+              selectedYear={selectedYear}
+              onYearChange={setSelectedYear}
+            />
+          )}
+        </div>
       </div>
       
       {/* Year Stats */}
@@ -150,6 +188,7 @@ export default function YearReviewPage() {
           summaryLoading={summaryLoading}
           summaryError={summaryError}
           onGenerateSummary={fetchYearSummary}
+          cooldownRemaining={cooldownRemaining}
         />
       ) : yearStats ? (
         <div className="text-center py-16">

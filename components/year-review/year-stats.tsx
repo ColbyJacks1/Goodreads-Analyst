@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   BookOpen, FileText, Star, Users, TrendingUp, Award, BookMarked, 
-  Sparkles, Brain, Heart, Lightbulb, Link2, User, ArrowRight, Loader2 
+  Sparkles, Brain, Heart, Lightbulb, Link2, User, ArrowRight, Loader2, RefreshCw 
 } from 'lucide-react';
 
 interface YearStatsDisplayProps {
@@ -19,6 +19,7 @@ interface YearStatsDisplayProps {
   summaryLoading?: boolean;
   summaryError?: string | null;
   onGenerateSummary?: () => void;
+  cooldownRemaining?: number;
 }
 
 export function YearStatsDisplay({ 
@@ -26,7 +27,8 @@ export function YearStatsDisplay({
   summary, 
   summaryLoading, 
   summaryError,
-  onGenerateSummary 
+  onGenerateSummary,
+  cooldownRemaining = 0
 }: YearStatsDisplayProps) {
   return (
     <div className="space-y-8">
@@ -202,6 +204,21 @@ export function YearStatsDisplay({
                     <p className="text-base text-foreground/80">{summary.lookingAhead}</p>
                   </div>
                 )}
+              </div>
+              
+              {/* Regenerate Button */}
+              <div className="mt-6 pt-4 border-t text-center">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={onGenerateSummary}
+                  disabled={cooldownRemaining > 0 || summaryLoading}
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  {cooldownRemaining > 0 
+                    ? `Wait ${cooldownRemaining}s` 
+                    : 'Regenerate Reflection'}
+                </Button>
               </div>
             </div>
           )}
