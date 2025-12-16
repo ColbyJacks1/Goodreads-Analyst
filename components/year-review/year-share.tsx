@@ -89,7 +89,10 @@ function YearShareModal({ stats, summary, onClose }: YearShareModalProps) {
   };
   
   const captureImage = useCallback(async (): Promise<Blob | null> => {
-    if (!previewRef.current) return null;
+    if (!previewRef.current) {
+      console.error('Preview ref is null');
+      return null;
+    }
     
     try {
       const canvas = await html2canvas(previewRef.current, {
@@ -97,10 +100,32 @@ function YearShareModal({ stats, summary, onClose }: YearShareModalProps) {
         backgroundColor: '#ffffff',
         useCORS: true,
         logging: false,
+        allowTaint: true,
+        foreignObjectRendering: false,
       });
       
       return new Promise((resolve) => {
-        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              console.error('toBlob returned null');
+              // Fallback: try getting data URL and converting
+              try {
+                const dataUrl = canvas.toDataURL('image/png');
+                fetch(dataUrl)
+                  .then(res => res.blob())
+                  .then(b => resolve(b))
+                  .catch(() => resolve(null));
+              } catch {
+                resolve(null);
+              }
+            } else {
+              resolve(blob);
+            }
+          },
+          'image/png',
+          1.0
+        );
       });
     } catch (err) {
       console.error('Failed to capture image:', err);
