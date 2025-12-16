@@ -288,7 +288,7 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
             {highlights.literaryPortrait && (
               <div className="mb-3">
                 <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1">📖 Literary Portrait</p>
-                <p className="text-xs text-foreground/80 leading-relaxed line-clamp-3">{highlights.literaryPortrait}</p>
+                <p className="text-xs text-foreground/80 leading-relaxed">{highlights.literaryPortrait}</p>
               </div>
             )}
             
@@ -296,7 +296,7 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
             {highlights.readerArchetype && (
               <div className="mb-3">
                 <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">🎭 Reader Archetype</p>
-                <p className="text-xs text-foreground/80 leading-relaxed line-clamp-2">{highlights.readerArchetype}</p>
+                <p className="text-xs text-foreground/80 leading-relaxed">{highlights.readerArchetype}</p>
               </div>
             )}
             
