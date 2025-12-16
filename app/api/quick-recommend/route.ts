@@ -81,7 +81,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Generate recommendations
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const prompt = QUICK_REC_PROMPT.replace('{book}', likedBook.trim());
     
     const result = await model.generateContent(prompt);
