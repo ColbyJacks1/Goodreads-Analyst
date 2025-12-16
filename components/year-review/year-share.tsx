@@ -31,10 +31,6 @@ function generateShareText(stats: YearStats, summary: YearSummaryData | null): s
     text += `⭐ Average rating: ${stats.averageRating.toFixed(1)}/5\n`;
   }
   
-  if (stats.topGenre) {
-    text += `🎭 Top genre: ${stats.topGenre}\n`;
-  }
-  
   text += `\n`;
   
   if (summary?.headline) {
@@ -187,14 +183,6 @@ function YearShareModal({ stats, summary, onClose }: YearShareModalProps) {
               )}
             </div>
             
-            {/* Top Genre */}
-            {stats.topGenre && (
-              <div className="mb-3">
-                <p className="text-xs font-semibold text-primary mb-1">🎭 Top Genre</p>
-                <p className="text-sm font-medium">{stats.topGenre}</p>
-              </div>
-            )}
-            
             {/* AI Summary Headline */}
             {summary?.headline && (
               <div className="mb-3">
@@ -206,7 +194,7 @@ function YearShareModal({ stats, summary, onClose }: YearShareModalProps) {
             {/* Overview */}
             {summary?.overview && (
               <div className="mb-3">
-                <p className="text-xs text-foreground/80 leading-relaxed line-clamp-3">
+                <p className="text-xs text-foreground/80 leading-relaxed">
                   {summary.overview}
                 </p>
               </div>
