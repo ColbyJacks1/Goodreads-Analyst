@@ -220,12 +220,12 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
             
             {/* Stats Row */}
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="bg-background/60 rounded-lg p-3 text-center">
+              <div className="text-center">
                 <p className="text-2xl font-bold text-primary">{highlights.booksRead}</p>
                 <p className="text-xs text-muted-foreground">Books Read</p>
               </div>
               {highlights.totalPages > 0 && (
-                <div className="bg-background/60 rounded-lg p-3 text-center">
+                <div className="text-center">
                   <p className="text-2xl font-bold text-primary">{(highlights.totalPages / 1000).toFixed(1)}k</p>
                   <p className="text-xs text-muted-foreground">Pages</p>
                 </div>
