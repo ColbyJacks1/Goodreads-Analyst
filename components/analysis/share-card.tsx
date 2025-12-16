@@ -169,31 +169,42 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
       const blob = await captureImage();
       if (!blob) throw new Error('Failed to capture');
       
+      let sharedSuccessfully = false;
+      
       // Try native share with file (works on mobile)
       if (navigator.share && navigator.canShare) {
-        const file = new File([blob], 'my-reading-personality.png', { type: 'image/png' });
-        const shareData = { files: [file] };
-        
-        if (navigator.canShare(shareData)) {
-          await navigator.share(shareData);
-          setSaving(false);
-          return;
+        try {
+          const file = new File([blob], 'my-reading-personality.png', { type: 'image/png' });
+          const shareData = { files: [file] };
+          
+          if (navigator.canShare(shareData)) {
+            await navigator.share(shareData);
+            sharedSuccessfully = true;
+          }
+        } catch (shareErr) {
+          // Native share failed or was cancelled, fall through to download
+          if ((shareErr as Error).name === 'AbortError') {
+            setSaving(false);
+            return; // User cancelled, don't download
+          }
+          console.log('Native share not available, downloading instead');
         }
       }
       
       // Fallback: download the image
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'my-reading-personality.png';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      if ((err as Error).name !== 'AbortError') {
-        console.error('Save failed:', err);
+      if (!sharedSuccessfully) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'my-reading-personality.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       }
+    } catch (err) {
+      console.error('Save failed:', err);
+      alert('Failed to save image. Please try again.');
     }
     setSaving(false);
   }, [captureImage]);
