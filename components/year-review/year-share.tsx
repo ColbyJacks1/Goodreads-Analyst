@@ -215,9 +215,9 @@ function YearShareModal({ stats, summary, onClose }: YearShareModalProps) {
             {stats.topRatedBooks.length > 0 && (
               <div className="space-y-1">
                 <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">⭐ Top Rated</p>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-2">
                   {stats.topRatedBooks.slice(0, 3).map((book, i) => (
-                    <span key={i} className="text-xs bg-background/60 px-2 py-0.5 rounded">
+                    <span key={i} className="text-xs">
                       {book.title.length > 25 ? book.title.substring(0, 25) + '...' : book.title}
                     </span>
                   ))}
