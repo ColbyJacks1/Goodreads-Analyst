@@ -165,18 +165,18 @@ function YearShareModal({ stats, summary, onClose }: YearShareModalProps) {
             
             {/* Stats Row */}
             <div className="grid grid-cols-3 gap-3 mb-4">
-              <div className="bg-background/60 rounded-lg p-3 text-center">
+              <div className="text-center">
                 <p className="text-2xl font-bold text-primary">{stats.booksRead}</p>
                 <p className="text-xs text-muted-foreground">Books</p>
               </div>
               {stats.pagesRead > 0 && (
-                <div className="bg-background/60 rounded-lg p-3 text-center">
+                <div className="text-center">
                   <p className="text-2xl font-bold text-primary">{(stats.pagesRead / 1000).toFixed(1)}k</p>
                   <p className="text-xs text-muted-foreground">Pages</p>
                 </div>
               )}
               {stats.averageRating > 0 && (
-                <div className="bg-background/60 rounded-lg p-3 text-center">
+                <div className="text-center">
                   <p className="text-2xl font-bold text-primary">{stats.averageRating.toFixed(1)}</p>
                   <p className="text-xs text-muted-foreground">Avg Rating</p>
                 </div>
