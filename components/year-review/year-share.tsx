@@ -198,31 +198,32 @@ function YearShareModal({ stats, summary, onClose }: YearShareModalProps) {
             className="rounded-xl p-5"
             style={{ 
               background: 'linear-gradient(to bottom right, #ecfdf5, #f0fdfa)',
-              border: '1px solid rgba(16, 185, 129, 0.2)'
+              border: '1px solid rgba(16, 185, 129, 0.2)',
+              color: '#1f2937'
             }}
           >
             {/* Branding */}
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-primary/10">
-              <Calendar className="w-5 h-5 text-primary" />
+            <div className="flex items-center gap-2 mb-4 pb-3" style={{ borderBottom: '1px solid rgba(16, 185, 129, 0.1)' }}>
+              <Calendar className="w-5 h-5" style={{ color: '#10b981' }} />
               <span className="font-bold text-sm">Year in Review {stats.year}</span>
             </div>
             
             {/* Stats Row */}
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-primary">{stats.booksRead}</p>
-                <p className="text-xs text-muted-foreground">Books</p>
+                <p className="text-2xl font-bold" style={{ color: '#10b981' }}>{stats.booksRead}</p>
+                <p className="text-xs" style={{ color: '#6b7280' }}>Books</p>
               </div>
               {stats.pagesRead > 0 && (
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">{(stats.pagesRead / 1000).toFixed(1)}k</p>
-                  <p className="text-xs text-muted-foreground">Pages</p>
+                  <p className="text-2xl font-bold" style={{ color: '#10b981' }}>{(stats.pagesRead / 1000).toFixed(1)}k</p>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Pages</p>
                 </div>
               )}
               {stats.averageRating > 0 && (
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">{stats.averageRating.toFixed(1)}</p>
-                  <p className="text-xs text-muted-foreground">Avg Rating</p>
+                  <p className="text-2xl font-bold" style={{ color: '#10b981' }}>{stats.averageRating.toFixed(1)}</p>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Avg Rating</p>
                 </div>
               )}
             </div>
@@ -230,7 +231,7 @@ function YearShareModal({ stats, summary, onClose }: YearShareModalProps) {
             {/* AI Summary Headline */}
             {summary?.headline && (
               <div className="mb-3">
-                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1">✨ Year Theme</p>
+                <p className="text-xs font-semibold mb-1" style={{ color: '#059669' }}>✨ Year Theme</p>
                 <p className="text-sm font-medium italic">"{summary.headline}"</p>
               </div>
             )}
@@ -238,7 +239,7 @@ function YearShareModal({ stats, summary, onClose }: YearShareModalProps) {
             {/* Overview */}
             {summary?.overview && (
               <div className="mb-3">
-                <p className="text-xs text-foreground/80 leading-relaxed">
+                <p className="text-xs leading-relaxed" style={{ color: '#374151' }}>
                   {summary.overview}
                 </p>
               </div>
@@ -247,7 +248,7 @@ function YearShareModal({ stats, summary, onClose }: YearShareModalProps) {
             {/* Top Books */}
             {stats.topRatedBooks.length > 0 && (
               <div className="space-y-1">
-                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400">⭐ Top Rated</p>
+                <p className="text-xs font-semibold" style={{ color: '#d97706' }}>⭐ Top Rated</p>
                 <div className="flex flex-wrap gap-2">
                   {stats.topRatedBooks.slice(0, 3).map((book, i) => (
                     <span key={i} className="text-xs">

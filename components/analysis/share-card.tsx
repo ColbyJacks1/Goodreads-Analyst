@@ -253,25 +253,26 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
             className="rounded-xl p-5"
             style={{ 
               background: 'linear-gradient(to bottom right, #eef2ff, #faf5ff)',
-              border: '1px solid rgba(99, 102, 241, 0.2)'
+              border: '1px solid rgba(99, 102, 241, 0.2)',
+              color: '#1f2937'
             }}
           >
             {/* Branding */}
-            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-primary/10">
-              <BookOpen className="w-5 h-5 text-primary" />
+            <div className="flex items-center gap-2 mb-4 pb-3" style={{ borderBottom: '1px solid rgba(99, 102, 241, 0.1)' }}>
+              <BookOpen className="w-5 h-5" style={{ color: '#6366f1' }} />
               <span className="font-bold text-sm">Goodreads Analyzer</span>
             </div>
             
             {/* Stats Row */}
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-primary">{highlights.booksRead}</p>
-                <p className="text-xs text-muted-foreground">Books Read</p>
+                <p className="text-2xl font-bold" style={{ color: '#6366f1' }}>{highlights.booksRead}</p>
+                <p className="text-xs" style={{ color: '#6b7280' }}>Books Read</p>
               </div>
               {highlights.totalPages > 0 && (
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">{(highlights.totalPages / 1000).toFixed(1)}k</p>
-                  <p className="text-xs text-muted-foreground">Pages</p>
+                  <p className="text-2xl font-bold" style={{ color: '#6366f1' }}>{(highlights.totalPages / 1000).toFixed(1)}k</p>
+                  <p className="text-xs" style={{ color: '#6b7280' }}>Pages</p>
                 </div>
               )}
             </div>
@@ -279,7 +280,7 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
             {/* Reader Summary */}
             {highlights.summary && (
               <div className="mb-3">
-                <p className="text-xs font-semibold text-primary mb-1">✨ Reader Summary</p>
+                <p className="text-xs font-semibold mb-1" style={{ color: '#6366f1' }}>✨ Reader Summary</p>
                 <p className="text-sm leading-relaxed">{highlights.summary}</p>
               </div>
             )}
@@ -287,28 +288,28 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
             {/* Literary Portrait */}
             {highlights.literaryPortrait && (
               <div className="mb-3">
-                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1">📖 Literary Portrait</p>
-                <p className="text-xs text-foreground/80 leading-relaxed">{highlights.literaryPortrait}</p>
+                <p className="text-xs font-semibold mb-1" style={{ color: '#059669' }}>📖 Literary Portrait</p>
+                <p className="text-xs leading-relaxed" style={{ color: '#374151' }}>{highlights.literaryPortrait}</p>
               </div>
             )}
             
             {/* Reader Archetype */}
             {highlights.readerArchetype && (
               <div className="mb-3">
-                <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">🎭 Reader Archetype</p>
-                <p className="text-xs text-foreground/80 leading-relaxed">{highlights.readerArchetype}</p>
+                <p className="text-xs font-semibold mb-1" style={{ color: '#9333ea' }}>🎭 Reader Archetype</p>
+                <p className="text-xs leading-relaxed" style={{ color: '#374151' }}>{highlights.readerArchetype}</p>
               </div>
             )}
             
             {/* Roast Highlights */}
             {highlights.roastBullets.length > 0 && (
               <div className="space-y-2">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-600 dark:text-orange-400">
+                <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: '#ea580c' }}>
                   <Flame className="w-3.5 h-3.5" />
                   The Roast
                 </div>
                 {highlights.roastBullets.map((bullet: string, i: number) => (
-                  <p key={i} className="text-xs text-foreground/80 pl-1 border-l-2 border-orange-400/50">
+                  <p key={i} className="text-xs pl-1" style={{ color: '#374151', borderLeft: '2px solid rgba(251, 146, 60, 0.5)' }}>
                     {bullet}
                   </p>
                 ))}
