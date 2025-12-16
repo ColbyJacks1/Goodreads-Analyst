@@ -194,6 +194,7 @@ export interface ImportProgress {
 export const STORAGE_KEYS = {
   BOOKS: 'goodreads-analyzer-books',
   ANALYSIS: 'goodreads-analyzer-analysis',
+  YEAR_SUMMARIES: 'goodreads-analyzer-year-summaries',
   LAST_UPDATED: 'goodreads-analyzer-last-updated',
 } as const;
 

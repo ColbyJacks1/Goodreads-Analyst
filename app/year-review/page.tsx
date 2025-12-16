@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, BookOpen } from 'lucide-react';
-import { getBooks } from '@/lib/storage';
+import { getBooks, getYearSummary, saveYearSummary } from '@/lib/storage';
 import { getYearsWithData, calculateYearStats } from '@/lib/stats';
 import { track } from '@vercel/analytics';
 import { Book, YearStats } from '@/lib/types';
@@ -55,8 +55,14 @@ export default function YearReviewPage() {
     if (selectedYear && books.length > 0) {
       const stats = calculateYearStats(books, selectedYear);
       setYearStats(stats);
-      // Reset summary when year changes
-      setYearSummary(null);
+      
+      // Load cached summary for this year
+      const cachedSummary = getYearSummary(selectedYear);
+      if (cachedSummary) {
+        setYearSummary(cachedSummary as YearSummaryData);
+      } else {
+        setYearSummary(null);
+      }
       setSummaryError(null);
     }
   }, [selectedYear, books]);
@@ -97,6 +103,7 @@ export default function YearReviewPage() {
       
       if (data.success && data.summary) {
         setYearSummary(data.summary);
+        saveYearSummary(selectedYear, data.summary);
         setLastSummaryTime(Date.now());
         track('year_summary_generated', { year: selectedYear, bookCount: yearBooks.length });
       } else {

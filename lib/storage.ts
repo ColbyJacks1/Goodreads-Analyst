@@ -216,3 +216,59 @@ export function exitDemoMode(): void {
   }
 }
 
+// ============================================
+// Year Summary Storage
+// ============================================
+
+/**
+ * Save a year summary to localStorage
+ */
+export function saveYearSummary(year: number, summary: unknown): void {
+  if (!isBrowser) return;
+  
+  try {
+    const existing = getYearSummaries();
+    existing[year] = summary;
+    localStorage.setItem(STORAGE_KEYS.YEAR_SUMMARIES, JSON.stringify(existing));
+  } catch (error) {
+    console.error('Failed to save year summary:', error);
+  }
+}
+
+/**
+ * Get all year summaries from localStorage
+ */
+export function getYearSummaries(): Record<number, unknown> {
+  if (!isBrowser) return {};
+  
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.YEAR_SUMMARIES);
+    if (!stored) return {};
+    return JSON.parse(stored);
+  } catch (error) {
+    console.error('Failed to get year summaries:', error);
+    return {};
+  }
+}
+
+/**
+ * Get a specific year's summary from localStorage
+ */
+export function getYearSummary(year: number): unknown | null {
+  const summaries = getYearSummaries();
+  return summaries[year] || null;
+}
+
+/**
+ * Clear all year summaries
+ */
+export function clearYearSummaries(): void {
+  if (!isBrowser) return;
+  
+  try {
+    localStorage.removeItem(STORAGE_KEYS.YEAR_SUMMARIES);
+  } catch (error) {
+    console.error('Failed to clear year summaries:', error);
+  }
+}
+
