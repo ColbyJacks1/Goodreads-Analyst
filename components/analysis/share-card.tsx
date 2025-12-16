@@ -246,8 +246,16 @@ function ShareModal({ analysis, books, onClose }: ShareCardProps) {
         </div>
         
         {/* Preview Card - This gets captured as image */}
+        {/* Using inline styles with RGB colors because html2canvas doesn't support lab() color function */}
         <div className="p-4">
-          <div ref={previewRef} className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 rounded-xl p-5 border border-primary/20">
+          <div 
+            ref={previewRef} 
+            className="rounded-xl p-5"
+            style={{ 
+              background: 'linear-gradient(to bottom right, #eef2ff, #faf5ff)',
+              border: '1px solid rgba(99, 102, 241, 0.2)'
+            }}
+          >
             {/* Branding */}
             <div className="flex items-center gap-2 mb-4 pb-3 border-b border-primary/10">
               <BookOpen className="w-5 h-5 text-primary" />
