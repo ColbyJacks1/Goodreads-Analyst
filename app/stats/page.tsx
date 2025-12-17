@@ -54,7 +54,7 @@ export default function StatsPage() {
           (progress) => setEnrichProgress(progress),
           controller.signal
         ).then((enrichedBooks) => {
-          saveBooks(enrichedBooks);
+          saveBooks(enrichedBooks, false, false);
           setBooks(enrichedBooks);
           setStats(calculateStats(enrichedBooks));
         }).catch(() => {
@@ -91,7 +91,7 @@ export default function StatsPage() {
       );
       
       // Save and update state
-      saveBooks(enrichedBooks);
+      saveBooks(enrichedBooks, false, false);
       setBooks(enrichedBooks);
       setStats(calculateStats(enrichedBooks));
     } catch (error) {

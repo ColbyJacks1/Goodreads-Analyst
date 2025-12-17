@@ -12,15 +12,17 @@ const isBrowser = typeof window !== 'undefined';
  * Save books to localStorage
  * Automatically exits demo mode when saving real user data
  */
-export function saveBooks(books: Book[], isDemo: boolean = false): void {
+export function saveBooks(books: Book[], isDemo: boolean = false, clearExistingAnalysis: boolean = true): void {
   if (!isBrowser) return;
   
   try {
     // Exit demo mode when saving real user data
     if (!isDemo) {
       localStorage.removeItem(DEMO_MODE_KEY);
-      // Clear any existing analysis when new data is uploaded
-      localStorage.removeItem(STORAGE_KEYS.ANALYSIS);
+      // Clear any existing analysis when new data is uploaded (but not when just updating books)
+      if (clearExistingAnalysis) {
+        localStorage.removeItem(STORAGE_KEYS.ANALYSIS);
+      }
     }
     
     localStorage.setItem(STORAGE_KEYS.BOOKS, JSON.stringify(books));
