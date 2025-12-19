@@ -151,7 +151,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<YearSumma
       .replace('{books}', booksText);
     
     // Get the model
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
     
     // Generate summary
     const result = await model.generateContent(fullPrompt);

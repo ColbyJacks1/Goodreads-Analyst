@@ -160,7 +160,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<AnalyzeRe
     console.log(`Formatted ${readCount} read + ${toReadCount} to-read books, ~${estimatedTokens} tokens`);
     
     // Get the model
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
     
     const analysis: Record<string, unknown> = {};
     
